@@ -1,3 +1,4 @@
+[![Build Status](http://207.246.114.245:8080/buildStatus/icon?job=Survival-Universe)](http://207.246.114.245:8080/job/Survival-Universe/)
 # SurvivalUniverse
 AleIV's 1.15 survival universe plugin
 
