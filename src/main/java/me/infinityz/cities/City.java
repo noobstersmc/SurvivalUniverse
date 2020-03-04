@@ -10,9 +10,10 @@ public class City {
     public String cityName;
     public UUID[] owners, helpers;
 
-    public City(String name){
+    public City(String name) {
         this.cityName = name;
-        //Get the owners and helpers
-        //TODO: Calculate the chunks that will belong to the city and maybe store them in RAM?
+        // Get the owners and helpers
+        // TODO: Calculate the chunks that will belong to the city and maybe store them
+        // in RAM?
     }
 }
