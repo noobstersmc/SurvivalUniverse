@@ -1,0 +1,17 @@
+Cities:
+  main-city:
+    owners: [5de6e184-af8d-498a-bbde-055e50653316]
+    city-name: La city
+    x-center: 0
+    z-center: 0
+    world: world
+    radius: 100
+    helpers: [f04891b6-3a22-49c3-a8c0-bdf7e415243a, fa69b7d1-d722-4858-a1ac-8c6689b68fc6]
+  second-city:
+    owners: [5de6e184-af8d-498a-bbde-055e50653316]
+    city-name: the city
+    x-center: 150
+    z-center: 150
+    world: world
+    radius: 5
+    helpers: [f04891b6-3a22-49c3-a8c0-bdf7e415243a, fa69b7d1-d722-4858-a1ac-8c6689b68fc6]

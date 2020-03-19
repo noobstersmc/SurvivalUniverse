@@ -18,5 +18,9 @@ public class PlayerManager {
         survivalPlayerMap = new HashMap<>();
     }
 
+    public SurvivalPlayer getPlayerFromId(UUID uuid){
+        return survivalPlayerMap.get(uuid);
+    }
+
     
 }
