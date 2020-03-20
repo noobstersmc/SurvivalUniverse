@@ -13,6 +13,8 @@ import me.infinityz.cities.City;
 import me.infinityz.cities.CityManager;
 import me.infinityz.commands.ChunkCommands;
 import me.infinityz.commands.PvPCommand;
+import me.infinityz.listeners.ChunkListener;
+import me.infinityz.listeners.CityListener;
 import me.infinityz.listeners.GlobalListeners;
 import me.infinityz.players.PlayerManager;
 import me.infinityz.scoreboard.ScoreboardManager;
@@ -42,6 +44,8 @@ public class SurvivalUniverse extends JavaPlugin {
         getCommand("chunk").setExecutor(new ChunkCommands(this));
         getCommand("city").setExecutor(new ChunkCommands(this));
         Bukkit.getPluginManager().registerEvents(new GlobalListeners(this), this);
+        Bukkit.getPluginManager().registerEvents(new CityListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new ChunkListener(this), this);
         loadChunks();
         loadCities();
     }
@@ -67,19 +71,19 @@ public class SurvivalUniverse extends JavaPlugin {
 
     void loadCities() {
         cityFile.getConfigurationSection("Cities").getKeys(false).forEach(it -> {
-            String keypath = "Cities." + it;
-            int x = cityFile.getInt(keypath + ".x-center");
-            int z = cityFile.getInt(keypath + ".z-center");
-            int radius = cityFile.getInt(keypath + ".radius");
-            String world = cityFile.getString(keypath + ".world");
-            String cityName = cityFile.getString(keypath + ".city-name");
+            final String keypath = "Cities." + it;
+            final int x = cityFile.getInt(keypath + ".x-center");
+            final int z = cityFile.getInt(keypath + ".z-center");
+            final int radius = cityFile.getInt(keypath + ".radius");
+            final String world = cityFile.getString(keypath + ".world");
+            final String cityName = cityFile.getString(keypath + ".city-name");
 
             List<UUID> helpers = new ArrayList<>();
             List<UUID> owners = new ArrayList<>();
             cityFile.getStringList(keypath + ".helpers").forEach(id -> helpers.add(UUID.fromString(id)));
-            cityFile.getStringList(keypath + ".owners").forEach(id -> helpers.add(UUID.fromString(id)));
+            cityFile.getStringList(keypath + ".owners").forEach(id -> owners.add(UUID.fromString(id)));
 
-            City city = new City(cityName, world, x, z, radius);
+            final City city = new City(cityName, world, x, z, radius);
             city.helpers = helpers.stream().toArray(UUID[]::new);
             city.owners = owners.stream().toArray(UUID[]::new);
             cityManager.cities.add(city);

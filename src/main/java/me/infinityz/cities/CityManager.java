@@ -25,11 +25,21 @@ public class CityManager {
         lastKnownCityMap = new HashMap<>();
     }
 
-    public boolean isInCircle(final Location loc, final City city) {
-        return new Location(Bukkit.getWorld(city.world), city.centerX, loc.getY(), city.centerZ).distance(loc) <= city.radius;
+    public City isInCity(Location loc) {
+        for (City city : cities)
+            if (isInRectangle(loc, city))
+                return city;
+        
+
+        return null;
     }
 
-    public boolean isInRectangle(final Location loc, final City city){
+    public boolean isInCircle(final Location loc, final City city) {
+        return new Location(Bukkit.getWorld(city.world), city.centerX, loc.getY(), city.centerZ)
+                .distance(loc) <= city.radius;
+    }
+
+    public boolean isInRectangle(final Location loc, final City city) {
         final int x1 = city.centerX - city.radius;
         final int z1 = city.centerZ - city.radius;
         final int x2 = city.centerX + city.radius;

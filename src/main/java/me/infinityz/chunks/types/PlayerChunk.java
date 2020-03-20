@@ -3,6 +3,7 @@ package me.infinityz.chunks.types;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import me.infinityz.chunks.ChunkType;
 import me.infinityz.chunks.IChunk;
@@ -22,6 +23,10 @@ public class PlayerChunk  extends IChunk {
         this.owner = owner;
         this.owner_last_known_name = Bukkit.getOfflinePlayer(owner).getName();
         System.out.println("Chunk for " + owner_last_known_name + " has been registered at");
+    }
+
+    public boolean isOwner(Player player){
+        return owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits();
     }
 
     @Override
