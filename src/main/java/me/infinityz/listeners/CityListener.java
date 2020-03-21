@@ -89,8 +89,6 @@ public class CityListener implements Listener {
         if (e.getEntityType() == EntityType.ENDER_CRYSTAL) {
             e.setCancelled(true);
         }
-        e.setCancelled(true);
-        e.setYield(0.0f);
     }
 
     boolean inCity(Location location, Player player) {
