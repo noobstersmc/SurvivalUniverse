@@ -47,6 +47,6 @@ public class CityManager {
         final ZoneVector current = new ZoneVector(loc.getBlockX(), loc.getBlockZ());
         final ZoneVector min = new ZoneVector(Math.min(x1, x2), Math.min(z1, z2));
         final ZoneVector max = new ZoneVector(Math.max(x1, x2), Math.max(z1, z2));
-        return current.isInAABB(min, max);
+        return loc.getWorld().getName().equalsIgnoreCase(city.world) && current.isInAABB(min, max);
     }
 }

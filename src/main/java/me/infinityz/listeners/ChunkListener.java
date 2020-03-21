@@ -1,5 +1,7 @@
 package me.infinityz.listeners;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Monster;
 import org.bukkit.event.EventHandler;
@@ -55,6 +57,7 @@ public class ChunkListener implements Listener {
 
     @EventHandler
     public void onPlaceTNT(BlockPlaceEvent e) {
+        if(e.getBlock().getType() != Material.TNT)return;
         e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getBlockPlaced().getChunk()) != null);
     }
 
