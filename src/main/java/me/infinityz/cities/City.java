@@ -24,7 +24,7 @@ public class City {
     }
 
     public boolean isOwner(Player player) {
-        if (owners.length == 0)
+        if (owners == null || owners.length == 0)
             return false;
         for (UUID uuid : owners) {
             if (player.getUniqueId().getMostSignificantBits() == uuid.getMostSignificantBits())
@@ -34,7 +34,7 @@ public class City {
     }
 
     public boolean isHelper(Player player) {
-        if (helpers.length == 0)
+        if (helpers == null || helpers.length == 0)
             return false;
         for (UUID uuid : helpers)
             if (player.getUniqueId().getMostSignificantBits() == uuid.getMostSignificantBits())

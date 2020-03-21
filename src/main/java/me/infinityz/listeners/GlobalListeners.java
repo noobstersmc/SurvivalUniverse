@@ -121,38 +121,14 @@ public class GlobalListeners implements Listener {
 
     }
 
-    boolean maybeInCityOrChunk(Location location, Player player) {
-        boolean bol = false;
-        final City city = instance.cityManager.isInCity(location);
-        if (city != null) {
-            if (!(city.isOwner(player) || city.isHelper(player))) {
-                bol = true;
-            }
-        }
-        final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(location.getChunk());
-        if (chunk != null) {
-            if (chunk.owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
-                bol = false;
-            }
-        }
-        return bol;
-    }
-
-    boolean maybeInCityOrChunk(Location location) {
-        return instance.chunkManager.findIChunkfromChunk(location.getChunk()) != null
-                || instance.cityManager.isInCity(location) != null;
-    }
-
     @EventHandler(priority = EventPriority.LOW)
     public void onBreakCity(BlockBreakEvent e) {
-        Bukkit.broadcastMessage("test");
         e.setCancelled(e.getPlayer() != null ? maybeInCityOrChunk(e.getBlock().getLocation(), e.getPlayer())
                 : maybeInCityOrChunk(e.getBlock().getLocation()));
     }
 
     @EventHandler(priority = EventPriority.LOW)
     public void onPlaceCity(BlockPlaceEvent e) {
-        Bukkit.broadcastMessage("test");
         if (e.getBlock().getType() == Material.LECTERN)
             return;
         e.setCancelled(e.getPlayer() != null ? maybeInCityOrChunk(e.getBlock().getLocation(), e.getPlayer())
@@ -330,6 +306,28 @@ public class GlobalListeners implements Listener {
             damager.sendMessage(ChatColor.RED + damaged.getName() + " has not enabled their pvp!");
             return;
         }
+    }
+
+    boolean maybeInCityOrChunk(Location location, Player player) {
+        boolean bol = false;
+        final City city = instance.cityManager.isInCity(location);
+        if (city != null) {
+            if (!(city.isOwner(player) || city.isHelper(player))) {
+                bol = true;
+            }
+        }
+        final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(location.getChunk());
+        if (chunk != null) {
+            if (chunk.owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
+                bol = false;
+            }
+        }
+        return bol;
+    }
+
+    boolean maybeInCityOrChunk(Location location) {
+        return instance.chunkManager.findIChunkfromChunk(location.getChunk()) != null
+                || instance.cityManager.isInCity(location) != null;
     }
 
 }

@@ -22,12 +22,12 @@ public class PlayerChunk  extends IChunk {
         this.chunkWorld = Bukkit.getWorld(world);
         this.owner = owner;
         this.owner_last_known_name = Bukkit.getOfflinePlayer(owner).getName();
-        System.out.println("Chunk for " + owner_last_known_name + " has been registered at");
     }
 
     public boolean isOwner(Player player){
         return owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits();
     }
+    
 
     @Override
     public String toString(){
