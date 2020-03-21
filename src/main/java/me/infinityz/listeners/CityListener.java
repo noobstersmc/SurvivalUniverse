@@ -30,7 +30,7 @@ public class CityListener implements Listener {
     public void onDamage(EntityDamageEvent e) {
         if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getEntity().getType() == EntityType.PLAYER)
             return;
-        if (e.getEntity().isCustomNameVisible()) {
+        if (e.getEntity().getCustomName() != null) {
             e.setCancelled(inCity(e.getEntity().getLocation()));
         }
     }
@@ -39,7 +39,7 @@ public class CityListener implements Listener {
     public void onDamageEntity(EntityDamageByEntityEvent e) {
         if (e.getEntity().getType() == EntityType.PLAYER)
             return;
-        if (e.getEntity().isCustomNameVisible()) {
+        if (e.getEntity().getCustomName() != null) {
             e.setCancelled(
                     e.getDamager() instanceof Player ? inCity(e.getEntity().getLocation(), (Player) e.getDamager())
                             : inCity(e.getEntity().getLocation()));
@@ -66,7 +66,7 @@ public class CityListener implements Listener {
     }
 
     @EventHandler
-    public void onPlace(BlockPlaceEvent e){
+    public void onPlace(BlockPlaceEvent e) {
         if (e.getPlayer() == null)
             return;
         final Player player = e.getPlayer();
