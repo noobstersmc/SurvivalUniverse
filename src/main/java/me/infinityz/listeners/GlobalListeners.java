@@ -138,6 +138,7 @@ public class GlobalListeners implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void interactEvent(PlayerInteractEvent e) {
         if (e.getClickedBlock() == null || e.getClickedBlock().getType() == Material.AIR)
+            e.player.sendMessage(ChatColor.RED + "You are not allowed to edit inside " + e.from.cityName);
             return;
         switch (e.getClickedBlock().getType()) {
             case ENDER_CHEST:
@@ -151,6 +152,7 @@ public class GlobalListeners implements Listener {
             case GRINDSTONE:
             case NOTE_BLOCK:
             case CRAFTING_TABLE:
+            case BED:
                 return;
             default:
                 if (e.getClickedBlock().getType().toString().toLowerCase().contains("plate"))
@@ -170,12 +172,12 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onCityChanged(CityChangeEvent e) {
         if (e.from != null) {
-            e.player.sendMessage("Haz salido de " + e.from.cityName);
+            e.player.sendMessage(ChatColor.RED + "You left " + e.from.cityName + ".");
             instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId())
                     .updateLines(instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId()).getLine(0));
         }
         if (e.to != null) {
-            e.player.sendMessage("Bievenido a " + e.to.cityName);
+            e.player.sendMessage(ChatColor.GREEN + "You entered " + e.to.cityName + ".");
             instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId()).updateLine(1,
                     "City: " + e.to.cityName);
 
@@ -192,8 +194,10 @@ public class GlobalListeners implements Listener {
         instance.playerManager.survivalPlayerMap.put(player.getUniqueId(), new SurvivalPlayer(player.getUniqueId()));
         // TODO: Handle scoreboards
         FastBoard fb = new FastBoard(player);
-        fb.updateTitle("Survival Universe");
+        fb.updateTitle(ChatColor.BOLD + "" + ChatColor.AQUA + "Survival Universe");
         fb.updateLines("Chunk: " + player.getChunk().toString());
+        fb.updateLines("");
+        fb.updateLines(ChatColor.AQUA + "survival.rip");
         instance.scoreboardManager.scoreboardHashMap.put(player.getUniqueId(), fb);
 
     }
@@ -294,7 +298,7 @@ public class GlobalListeners implements Listener {
         final SurvivalPlayer survivalDamagerPlayer = instance.playerManager.survivalPlayerMap
                 .get(damager.getUniqueId());
         if (!survivalDamagerPlayer.pvp) {
-            damager.sendMessage(ChatColor.RED + "Your PVP is disabled. Use /pvp on to enable it!");
+            damager.sendMessage(ChatColor.RED + "Your PVP is disabled!");
             e.setCancelled(true);
             return;
         }
