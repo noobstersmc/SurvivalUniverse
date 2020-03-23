@@ -52,7 +52,7 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onPlayerLectern(PlayerTakeLecternBookEvent e) {
-        e.setCancelled(maybeInCityOrChunk(e.getLectern().getLocation()));
+        e.setCancelled(maybeInCityOrChunk(e.getLectern().getLocation(), e.getPlayer()));
     }
 
     @EventHandler
