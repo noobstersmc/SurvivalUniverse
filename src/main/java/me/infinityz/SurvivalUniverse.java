@@ -41,8 +41,11 @@ public class SurvivalUniverse extends JavaPlugin {
         this.chunksFile = new FileConfig(this, "chunks.yml", "chunks.yml");
         this.cityFile = new FileConfig(this, "city.yml", "city.yml");
         getCommand("pvp").setExecutor(new PvPCommand(this));
-        getCommand("chunk").setExecutor(new ChunkCommands(this));
-        getCommand("city").setExecutor(new ChunkCommands(this));
+        final ChunkCommands ch = new ChunkCommands(this);
+        getCommand("chunk").setExecutor(ch);
+        getCommand("city").setExecutor(ch);
+        getCommand("admin").setExecutor(ch);
+        getCommand("helper").setExecutor(ch);
         Bukkit.getPluginManager().registerEvents(new GlobalListeners(this), this);
         Bukkit.getPluginManager().registerEvents(new CityListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ChunkListener(this), this);

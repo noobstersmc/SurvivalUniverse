@@ -52,7 +52,9 @@ public class CityListener implements Listener {
             return;
         final Player player = e.getPlayer();
         final City city = instance.cityManager.isInCity(player.getLocation());
-        if (city != null && city.isOwner(player))
+        if (city == null)
+            return;
+        if (city.isOwner(player))
             return;
         if (city.isHelper(player)) {
             final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(player.getChunk());
@@ -71,7 +73,9 @@ public class CityListener implements Listener {
             return;
         final Player player = e.getPlayer();
         final City city = instance.cityManager.isInCity(player.getLocation());
-        if (city != null && city.isOwner(player))
+        if (city == null)
+            return;
+        if (city.isOwner(player))
             return;
         if (city.isHelper(player)) {
             final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(player.getChunk());
@@ -86,9 +90,7 @@ public class CityListener implements Listener {
 
     @EventHandler
     public void onCrystal(EntityExplodeEvent e) {
-        if (e.getEntityType() == EntityType.ENDER_CRYSTAL) {
-            e.setCancelled(true);
-        }
+        e.setCancelled(inCity(e.getLocation()));
     }
 
     boolean inCity(Location location, Player player) {

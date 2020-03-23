@@ -1,15 +1,17 @@
 package me.infinityz.listeners;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Monster;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 
@@ -46,7 +48,36 @@ public class ChunkListener implements Listener {
             return;
         if (e.getEntity() instanceof Monster)
             return;
-        e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
+        PlayerChunk c = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+        if (c != null) {
+            if (e.getDamager() instanceof Player) {
+                Player pl = (Player) e.getDamager();
+                SurvivalPlayer su = instance.playerManager.getPlayerFromId(c.owner);
+                if (c.isOwner(pl) || (su != null && su.isAlly(pl.getUniqueId()))) {
+                    e.setCancelled(false);
+                    return;
+                }
+                e.setCancelled(true);
+                return;
+            }
+            if (e.getDamager() instanceof Projectile) {
+                Projectile prj = (Projectile) e.getDamager();
+                if (prj.getShooter() instanceof Player) {
+                    Player pl = (Player) prj.getShooter();
+                    SurvivalPlayer su = instance.playerManager.getPlayerFromId(c.owner);
+                    if (c.isOwner(pl) || (su != null && su.isAlly(pl.getUniqueId()))) {
+                        e.setCancelled(false);
+                        return;
+                    }
+                    e.setCancelled(true);
+                    return;
+                }
+                e.setCancelled(true);
+                return;
+
+            }
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler
@@ -57,22 +88,29 @@ public class ChunkListener implements Listener {
 
     @EventHandler
     public void onPlaceTNT(BlockPlaceEvent e) {
-        if(e.getBlock().getType() != Material.TNT)return;
-        e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getBlockPlaced().getChunk()) != null);
+        if (e.getBlock().getType() == Material.TNT)
+            e.setCancelled(
+                    (PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getBlockPlaced().getChunk()) != null);
+    }
+
+    @EventHandler
+    public void onExplode(BlockExplodeEvent e) {
+        e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getBlock().getChunk()) != null);
     }
 
     @EventHandler
     public void onWither(CreatureSpawnEvent e) {
-        if (e.getEntityType() != EntityType.WITHER)
-            return;
-        e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
+        if (e.getEntityType() == EntityType.WITHER || e.getEntityType() == EntityType.ENDER_CRYSTAL) {
+            e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
+        }
     }
 
     @EventHandler
     public void onSpawn(CreatureSpawnEvent e) {
         if (e.getEntityType() == EntityType.WITHER)
             return;
-        if (e.getSpawnReason() == SpawnReason.EGG || e.getSpawnReason() == SpawnReason.BREEDING)
+        if (e.getSpawnReason() == SpawnReason.EGG || e.getSpawnReason() == SpawnReason.BREEDING
+                || e.getSpawnReason() == SpawnReason.SPAWNER_EGG)
             return;
         e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
     }

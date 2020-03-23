@@ -18,26 +18,31 @@ public class City {
         this.centerX = centerX;
         this.centerZ = centerZ;
         this.radius = radius;
-        // Get the owners and helpers
-        // TODO: Calculate the chunks that will belong to the city and maybe store them
-        // in RAM?
     }
 
-    public boolean isOwner(Player player) {
+    public boolean isOwner(UUID player) {
         if (owners == null || owners.length == 0)
             return false;
         for (UUID uuid : owners) {
-            if (player.getUniqueId().getMostSignificantBits() == uuid.getMostSignificantBits())
+            if (player.getMostSignificantBits() == uuid.getMostSignificantBits())
                 return true;
         }
         return false;
     }
 
+    public boolean isOwner(Player player) {
+        return isOwner(player.getUniqueId());
+    }
+
     public boolean isHelper(Player player) {
+        return isHelper(player.getUniqueId());
+    }
+
+    public boolean isHelper(UUID player) {
         if (helpers == null || helpers.length == 0)
             return false;
         for (UUID uuid : helpers)
-            if (player.getUniqueId().getMostSignificantBits() == uuid.getMostSignificantBits())
+            if (player.getMostSignificantBits() == uuid.getMostSignificantBits())
                 return true;
         return false;
     }

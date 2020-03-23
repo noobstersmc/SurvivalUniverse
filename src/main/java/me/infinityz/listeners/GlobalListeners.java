@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -20,8 +21,11 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
@@ -82,6 +86,11 @@ public class GlobalListeners implements Listener {
     }
 
     @EventHandler
+    public void onSpread(BlockBurnEvent e) {
+        e.setCancelled(maybeInCityOrChunk(e.getBlock().getLocation()));
+    }
+
+    @EventHandler
     public void onDamageByPlayer(EntityDamageByEntityEvent e) {
         if (e.getDamager() instanceof Player) {
             Player player = (Player) e.getDamager();
@@ -135,10 +144,15 @@ public class GlobalListeners implements Listener {
                 : maybeInCityOrChunk(e.getBlock().getLocation()));
     }
 
+    @EventHandler
+    public void onLogin(PlayerLoginEvent e) {
+        if (Bukkit.getOnlinePlayers().size() >= 15 && !e.getPlayer().hasPermission("reserved.slot"))
+            e.disallow(Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&', "Server full"));
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void interactEvent(PlayerInteractEvent e) {
         if (e.getClickedBlock() == null || e.getClickedBlock().getType() == Material.AIR)
-            e.player.sendMessage(ChatColor.RED + "You are not allowed to edit inside " + e.from.cityName);
             return;
         switch (e.getClickedBlock().getType()) {
             case ENDER_CHEST:
@@ -151,11 +165,13 @@ public class GlobalListeners implements Listener {
             case SMITHING_TABLE:
             case GRINDSTONE:
             case NOTE_BLOCK:
+            case TRIPWIRE_HOOK:
+            case TRIPWIRE:
             case CRAFTING_TABLE:
-            case BED:
                 return;
             default:
-                if (e.getClickedBlock().getType().toString().toLowerCase().contains("plate"))
+                if (e.getClickedBlock().getType().toString().toLowerCase().contains("plate")
+                        || e.getClickedBlock().getType().toString().toLowerCase().endsWith("bed"))
                     return;
                 e.setCancelled(maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer()));
                 return;
@@ -164,8 +180,10 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onChunkChange(PlayerChangeChunkEvent e) {
-        instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId()).updateLine(0,
-                "Chunk: " + e.to.toString());
+        instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId()).updateLine(2,
+                ChatColor.GREEN + "Chunk: " + ChatColor.WHITE + getChunkCoord(e.to));
+        instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId()).updateLine(3,
+                ChatColor.GREEN + "Zone: " + ChatColor.WHITE + getZone(e.toLocation));
 
     }
 
@@ -173,15 +191,13 @@ public class GlobalListeners implements Listener {
     public void onCityChanged(CityChangeEvent e) {
         if (e.from != null) {
             e.player.sendMessage(ChatColor.RED + "You left " + e.from.cityName + ".");
-            instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId())
-                    .updateLines(instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId()).getLine(0));
         }
         if (e.to != null) {
             e.player.sendMessage(ChatColor.GREEN + "You entered " + e.to.cityName + ".");
-            instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId()).updateLine(1,
-                    "City: " + e.to.cityName);
-
         }
+
+        instance.scoreboardManager.scoreboardHashMap.get(e.player.getUniqueId()).updateLine(3,
+                ChatColor.GREEN + "Zone: " + ChatColor.WHITE + getZone(e.player.getLocation()));
     }
 
     /*
@@ -192,14 +208,36 @@ public class GlobalListeners implements Listener {
     public void onPlayerJoin(PlayerJoinEvent e) {
         final Player player = e.getPlayer();
         instance.playerManager.survivalPlayerMap.put(player.getUniqueId(), new SurvivalPlayer(player.getUniqueId()));
-        // TODO: Handle scoreboards
         FastBoard fb = new FastBoard(player);
-        fb.updateTitle(ChatColor.BOLD + "" + ChatColor.AQUA + "Survival Universe");
-        fb.updateLines("Chunk: " + player.getChunk().toString());
-        fb.updateLines("");
-        fb.updateLines(ChatColor.AQUA + "survival.rip");
+
+        fb.updateTitle(ChatColor.translateAlternateColorCodes('&', "  &b&lSurvival Universe  "));
+
+        fb.updateLines(ChatColor.GREEN + "World: " + ChatColor.WHITE + player.getWorld().getName(), " ",
+                ChatColor.GREEN + "Chunk: " + ChatColor.WHITE + getChunkCoord(player.getLocation()),
+                ChatColor.GREEN + "Zone: " + ChatColor.WHITE + getZone(player.getLocation()), "  ",
+                ChatColor.GREEN + "Players: " + ChatColor.WHITE + Bukkit.getOnlinePlayers().size(), "   ",
+                ChatColor.AQUA + "  survival.rip  ");
+
         instance.scoreboardManager.scoreboardHashMap.put(player.getUniqueId(), fb);
 
+    }
+
+    String getZone(Location loc) {
+        final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(loc.getChunk());
+        if (chunk != null)
+            return "Private";
+        final City ci = instance.cityManager.isInCity(loc);
+        if (ci != null)
+            return "City";
+        return "Free";
+    }
+
+    String getChunkCoord(Location loc) {
+        return loc.getChunk().getX() + ", " + loc.getChunk().getZ();
+    }
+
+    String getChunkCoord(Chunk loc) {
+        return loc.getX() + ", " + loc.getZ();
     }
 
     /* Clears the cache from the player that has left */
@@ -212,6 +250,39 @@ public class GlobalListeners implements Listener {
 
     }
 
+    @EventHandler
+    public void onChangeWorld(PlayerChangedWorldEvent e) {
+        instance.scoreboardManager.scoreboardHashMap.get(e.getPlayer().getUniqueId()).updateLine(0,
+                ChatColor.GREEN + "World: " + ChatColor.WHITE + e.getPlayer().getWorld().getName());
+
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        Bukkit.getScheduler().runTaskLaterAsynchronously(instance, () -> {
+            Bukkit.getOnlinePlayers().parallelStream().forEach(all -> {
+                final FastBoard fb = instance.scoreboardManager.scoreboardHashMap.get(all.getUniqueId());
+                if (fb == null)
+                    return;
+                fb.updateLine(5, ChatColor.GREEN + "Players: " + ChatColor.WHITE + Bukkit.getOnlinePlayers().size());
+            });
+
+        }, 20L);
+    }
+
+    @EventHandler
+    public void onLeave(PlayerQuitEvent e) {
+        Bukkit.getScheduler().runTaskLaterAsynchronously(instance, () -> {
+            Bukkit.getOnlinePlayers().parallelStream().forEach(all -> {
+                final FastBoard fb = instance.scoreboardManager.scoreboardHashMap.get(all.getUniqueId());
+                if (fb == null)
+                    return;
+                fb.updateLine(5, ChatColor.GREEN + "Players: " + ChatColor.WHITE + Bukkit.getOnlinePlayers().size());
+            });
+
+        }, 20L);
+    }
+
     /* Handles the city change event */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
@@ -221,7 +292,7 @@ public class GlobalListeners implements Listener {
         final Chunk from = e.getFrom().getChunk();
         if (to.getX() != from.getX() || to.getZ() != from.getZ()) {
             final Player player = e.getPlayer();
-            Bukkit.getPluginManager().callEvent(new PlayerChangeChunkEvent(player, from, to));
+            Bukkit.getPluginManager().callEvent(new PlayerChangeChunkEvent(player, from, to, e.getTo()));
         }
         if (e.getTo().getBlockX() != e.getFrom().getBlockX() || e.getTo().getBlockZ() != e.getFrom().getBlockZ()) {
 
@@ -252,7 +323,7 @@ public class GlobalListeners implements Listener {
         final Chunk from = e.getFrom().getChunk();
         if (to.getX() != from.getX() || to.getZ() != from.getZ()) {
             final Player player = e.getPlayer();
-            Bukkit.getPluginManager().callEvent(new PlayerChangeChunkEvent(player, from, to));
+            Bukkit.getPluginManager().callEvent(new PlayerChangeChunkEvent(player, from, to, e.getTo()));
         }
         if (e.getTo().getBlockX() != e.getFrom().getBlockX() || e.getTo().getBlockZ() != e.getFrom().getBlockZ()) {
 
