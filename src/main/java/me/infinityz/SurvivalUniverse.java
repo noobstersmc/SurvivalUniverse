@@ -38,7 +38,7 @@ public class SurvivalUniverse extends JavaPlugin {
         this.chunkManager = new ChunkManager(this);
         this.cityManager = new CityManager(this);
 
-        this.chunksFile = new FileConfig(this, "chunks.yml", "chunks.yml");
+        this.chunksFile = new FileConfig(this, "chunkos.yml", "chunks.yml");
         this.cityFile = new FileConfig(this, "city.yml", "city.yml");
         getCommand("pvp").setExecutor(new PvPCommand(this));
         final ChunkCommands ch = new ChunkCommands(this);
