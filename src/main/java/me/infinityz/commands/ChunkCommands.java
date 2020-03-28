@@ -359,7 +359,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         }
                     });
 
-                    sender.sendMessage("You've succesfully added " + target.getName() + "  to your allies.");
+                    sender.sendMessage("You've succesfully added " + target.getName() + " to your allies.");
                     break;
                 }
                 case "remove": {
@@ -386,7 +386,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                             e.printStackTrace();
                         }
                     });
-                    sender.sendMessage("You've succesfully removed " + target.getName() + "  from your allies.");
+                    sender.sendMessage("You've succesfully removed " + target.getName() + " from your allies.");
                     break;
                 }
                 case "list": {
