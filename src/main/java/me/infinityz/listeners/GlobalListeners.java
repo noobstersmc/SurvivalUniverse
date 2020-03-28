@@ -13,6 +13,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -21,7 +23,11 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
@@ -47,6 +53,16 @@ public class GlobalListeners implements Listener {
 
     public GlobalListeners(SurvivalUniverse instance) {
         this.instance = instance;
+    }
+
+    @EventHandler
+    public void cacheData(AsyncPlayerPreLoginEvent e) {
+        try {
+            instance.databaseManager.database.loadPlayer(e.getUniqueId());
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+
     }
     /* Global events, for both chunk and cities */
 
@@ -79,9 +95,37 @@ public class GlobalListeners implements Listener {
     }
 
     @EventHandler
+    public void onEntity(PlayerInteractAtEntityEvent e){
+        if(e.getRightClicked() == null)return;
+        if(e.getRightClicked().getType() != EntityType.ARMOR_STAND)return;
+        e.setCancelled(maybeInCityOrChunk(e.getRightClicked().getLocation(), e.getPlayer()));
+    }
+
+    @EventHandler
     public void onSpread(BlockSpreadEvent e) {
         if (e.getSource().getType() == Material.FIRE) {
             e.setCancelled(maybeInCityOrChunk(e.getBlock().getLocation()));
+        }
+    }
+
+    /*Issue #3 - Problem 1, feature added. */
+    @EventHandler
+    public void onSpread(BlockIgniteEvent e){
+        if(e.getCause() == IgniteCause.ARROW){
+            if(e.getIgnitingEntity() instanceof Projectile){
+                Projectile proj = (Projectile) e.getIgnitingEntity();
+                if(proj.getShooter() != null && proj.getShooter() instanceof Player){
+                    Player player = (Player) proj.getShooter();
+                    boolean can = maybeInCityOrChunk(e.getBlock().getLocation(), player);
+                    e.setCancelled(can);
+                    if(can){
+                        Bukkit.getScheduler().runTaskLater(instance, ()->{
+                            player.updateInventory();
+                        }, 10);
+                    }
+                }
+            }
+            
         }
     }
 
@@ -147,7 +191,8 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
         if (Bukkit.getOnlinePlayers().size() >= 20 && !e.getPlayer().hasPermission("reserved.slot"))
-            e.disallow(Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&', "&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U"));
+            e.disallow(Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
+                    "&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U"));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -363,6 +408,9 @@ public class GlobalListeners implements Listener {
             if (projectile.getShooter() != null && !(projectile.getShooter() instanceof Player))
                 return;
             damager = (Player) projectile.getShooter();
+            /* Issue #2 - Enderpearl fix */
+            if (damager.getUniqueId().getMostSignificantBits() == e.getEntity().getUniqueId().getMostSignificantBits())
+                return; // End here
         } else {
             damager = (Player) e.getDamager();
         }
@@ -383,6 +431,19 @@ public class GlobalListeners implements Listener {
         }
     }
 
+    /* Issue #3 - Water and Lava buckets - Start*/
+    @EventHandler
+    public void onBucketEmpty(PlayerBucketEmptyEvent e) {
+        e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer()));
+
+    }
+
+    @EventHandler
+    public void onBucketFill(PlayerBucketFillEvent e) {
+        e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer()));
+    }
+    /* Issue #3 - Water and Lava buckets - End here*/
+
     boolean maybeInCityOrChunk(Location location, Player player) {
         boolean bol = false;
         final City city = instance.cityManager.isInCity(location);
@@ -396,6 +457,11 @@ public class GlobalListeners implements Listener {
             if (chunk.owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
                 bol = false;
             }
+            final SurvivalPlayer su = instance.playerManager.getPlayerFromId(chunk.owner);
+            if(su!= null){
+                bol = su.isAlly(player.getUniqueId());
+            }
+
         }
         return bol;
     }

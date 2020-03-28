@@ -2,9 +2,11 @@ me\infinityz\cities\CityChangeEvent.class
 me\infinityz\cities\CityManager.class
 me\infinityz\listeners\ChunkListener.class
 me\infinityz\listeners\CityListener.class
+me\infinityz\stats\IDatabase.class
 me\infinityz\scoreboard\FastReflection.class
 me\infinityz\listeners\GlobalListeners.class
 me\infinityz\players\PlayerManager.class
+me\infinityz\stats\DatabaseManager.class
 me\infinityz\utils\FileConfig.class
 me\infinityz\scoreboard\FastBoard.class
 me\infinityz\commands\PvPCommand.class
@@ -18,8 +20,10 @@ me\infinityz\commands\ChunkCommands.class
 me\infinityz\chunks\ChunkManager.class
 me\infinityz\scoreboard\ScoreboardManager.class
 me\infinityz\chunks\IChunk.class
+me\infinityz\stats\types\vMySQL.class
 me\infinityz\listeners\PlayerChangeChunkEvent.class
 me\infinityz\scoreboard\FastBoard$TeamMode.class
+me\infinityz\stats\core\MySQL.class
 me\infinityz\players\SurvivalPlayer.class
 me\infinityz\scoreboard\FastBoard$VersionType.class
 me\infinityz\listeners\GlobalListeners$1.class

@@ -18,27 +18,30 @@ import me.infinityz.listeners.CityListener;
 import me.infinityz.listeners.GlobalListeners;
 import me.infinityz.players.PlayerManager;
 import me.infinityz.scoreboard.ScoreboardManager;
+import me.infinityz.stats.DatabaseManager;
 import me.infinityz.utils.FileConfig;
 
 /**
  * SurvivalUniverse
  */
 public class SurvivalUniverse extends JavaPlugin {
+    public static SurvivalUniverse instance;
+
     public ScoreboardManager scoreboardManager;
     public PlayerManager playerManager;
     public ChunkManager chunkManager;
     public CityManager cityManager;
     public FileConfig chunksFile;
     public FileConfig cityFile;
+    public DatabaseManager databaseManager;
 
     @Override
     public void onEnable() {
+        instance = this;
         this.scoreboardManager = new ScoreboardManager(this);
         this.playerManager = new PlayerManager(this);
         this.chunkManager = new ChunkManager(this);
         this.cityManager = new CityManager(this);
-        
-
         this.chunksFile = new FileConfig(this, "chunks.yml", "chunks.yml");
         this.cityFile = new FileConfig(this, "city.yml", "city.yml");
         getCommand("pvp").setExecutor(new PvPCommand(this));
@@ -47,11 +50,13 @@ public class SurvivalUniverse extends JavaPlugin {
         getCommand("city").setExecutor(ch);
         getCommand("admin").setExecutor(ch);
         getCommand("helper").setExecutor(ch);
+        getCommand("ally").setExecutor(ch);
         Bukkit.getPluginManager().registerEvents(new GlobalListeners(this), this);
         Bukkit.getPluginManager().registerEvents(new CityListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ChunkListener(this), this);
         loadChunks();
         loadCities();
+        this.databaseManager = new DatabaseManager(this);
     }
 
     @Override

@@ -28,7 +28,7 @@ public class CityListener implements Listener {
 
     @EventHandler
     public void onDamage(EntityDamageEvent e) {
-        if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getEntity().getType() == EntityType.PLAYER)
+        if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getEntity().getType() == EntityType.PLAYER|| e.getEntity().getType() == EntityType.ENDER_PEARL)
             return;
         if (e.getEntity().getCustomName() != null) {
             e.setCancelled(inCity(e.getEntity().getLocation()));
@@ -39,6 +39,7 @@ public class CityListener implements Listener {
     public void onDamageEntity(EntityDamageByEntityEvent e) {
         if (e.getEntity().getType() == EntityType.PLAYER)
             return;
+            
         if (e.getEntity().getCustomName() != null) {
             e.setCancelled(
                     e.getDamager() instanceof Player ? inCity(e.getEntity().getLocation(), (Player) e.getDamager())
@@ -89,10 +90,11 @@ public class CityListener implements Listener {
     }
 
     @EventHandler
-    public void onCrystal(EntityExplodeEvent e) {
-        e.setCancelled(inCity(e.getLocation()));
-    }
-
+    public void onExplode(EntityExplodeEvent e) {
+        if(e.getEntity().getType() == EntityType.PRIMED_TNT)return;
+        e.blockList().removeIf(block -> inCity(block.getLocation()));
+    }/* Issue #3 - TNT In city fixed */
+    
     boolean inCity(Location location, Player player) {
         boolean bol = false;
         final City city = instance.cityManager.isInCity(location);

@@ -19,6 +19,7 @@ import me.infinityz.SurvivalUniverse;
 import me.infinityz.chunks.IChunk;
 import me.infinityz.chunks.types.PlayerChunk;
 import me.infinityz.cities.City;
+import me.infinityz.players.SurvivalPlayer;
 import net.md_5.bungee.api.ChatColor;
 
 /**
@@ -327,6 +328,16 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
             }
 
+        }
+        else if (cmd.getName().equals("ally")) {
+            Player player = (Player)sender;
+            SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
+            if(su!= null){
+                for(UUID id : su.allies){
+                    Bukkit.broadcastMessage("" + id);
+                }
+            }
+            return true;
         }
         return false;
     }
