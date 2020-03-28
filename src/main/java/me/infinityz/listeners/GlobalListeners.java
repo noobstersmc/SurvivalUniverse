@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -36,6 +37,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import me.infinityz.SurvivalUniverse;
 import me.infinityz.chunks.types.PlayerChunk;
@@ -462,7 +465,7 @@ public class GlobalListeners implements Listener {
             }
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(chunk.owner);
             if (su != null) {
-                if(su.isAlly(player.getUniqueId())){
+                if (su.isAlly(player.getUniqueId())) {
                     bol = false;
                 }
             }
@@ -476,4 +479,32 @@ public class GlobalListeners implements Listener {
                 || instance.cityManager.isInCity(location) != null;
     }
 
+    /* Issue #4 - Feature request - Make charged creepers drop the player's head. */
+    @SuppressWarnings("all")
+    @EventHandler
+    public void onCreeperDamage(EntityDamageByEntityEvent e) {
+        if (e.isCancelled())
+            return;
+        if (e.getEntity().getType() != EntityType.PLAYER)
+            return;
+        if (e.getDamager() == null)
+            return;
+        if (e.getDamager().getType() != EntityType.CREEPER)
+            return;
+            final Player player = (Player) e.getEntity();
+        if (player.getHealth() + player.getAbsorptionAmount() - e.getFinalDamage() <= 0) {
+            final Creeper creeper = (Creeper) e.getDamager();
+            if (creeper.isPowered()) {
+                final ItemStack stack = new ItemStack(Material.PLAYER_HEAD, 1);
+                final SkullMeta meta = (SkullMeta) stack.getItemMeta();
+                final Location playerLocation = player.getLocation().clone();
+                meta.setOwner(player.getName());
+                stack.setItemMeta(meta);
+                Bukkit.getScheduler().runTaskLater(instance, ()->{
+                    playerLocation.getWorld().dropItemNaturally(playerLocation, stack);
+                }, 4);
+            }
+        }
+
+    }
 }

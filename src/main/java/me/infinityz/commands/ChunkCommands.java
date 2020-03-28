@@ -12,6 +12,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
@@ -39,7 +40,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
     @SuppressWarnings("all")
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equals("chunk")) {
+        if (cmd.getName().equalsIgnoreCase("chunk")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Console can't use chunk.");
                 return true;
@@ -143,7 +144,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
             }
 
-        } else if (cmd.getName().equals("city")) {
+        } else if (cmd.getName().equalsIgnoreCase("city")) {
             final Player player = (Player) sender;
             final City city = instance.cityManager.isInCity(player.getLocation());
             if (city == null) {
@@ -166,7 +167,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     "\n&b" + city.cityName + "\n&aAdmin(s):&f " + owners + "\n&aHelper(s): &f" + helpers + "  \n  "));
 
             return true;
-        } else if (cmd.getName().equals("helper")) {
+        } else if (cmd.getName().equalsIgnoreCase("helper")) {
             if (args.length < 2) {
                 sender.sendMessage("Command usage: /helper <add:remove> [Player]");
                 return true;
@@ -248,7 +249,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
             }
 
-        } else if (cmd.getName().equals("admin")) {
+        } else if (cmd.getName().equalsIgnoreCase("admin")) {
             if (args.length < 2) {
                 sender.sendMessage("Command usage: /admin <add:remove> [Player]");
                 return true;
@@ -329,7 +330,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
             }
 
-        } else if (cmd.getName().equals("ally")) {
+        } else if (cmd.getName().equalsIgnoreCase("ally")) {
             final Player player = (Player) sender;
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
             if (args.length == 0) {
@@ -354,7 +355,6 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         try {
                             instance.databaseManager.database.savePlayer(player.getUniqueId());
                         } catch (Exception e) {
-                            // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
                     });
@@ -382,7 +382,6 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         try {
                             instance.databaseManager.database.savePlayer(player.getUniqueId());
                         } catch (Exception e) {
-                            // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
                     });
@@ -405,6 +404,19 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 default: {
                     return false;
                 }
+            }
+            return true;
+        }else if (cmd.getName().equalsIgnoreCase("home")) {
+            if(sender instanceof ConsoleCommandSender){
+                sender.sendMessage("Console can't use this command because consoles don't have a home. They are, indeed, homeless.");
+                return true;
+            }
+            final Player player = (Player) sender;
+            if(player.getBedSpawnLocation() != null){
+                sender.sendMessage("Teleporting to home...");
+                player.teleport(player.getBedSpawnLocation());
+            }else{                
+            sender.sendMessage("You are homeless.");
             }
             return true;
         }

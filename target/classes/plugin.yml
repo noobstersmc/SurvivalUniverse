@@ -8,6 +8,7 @@ commands:
   chunk:
   city:
   admin:
+  home:
   helper:
   ally:
     usage: "\u00A7cCommand usage: /<command> <add:list:remove> [Player]"

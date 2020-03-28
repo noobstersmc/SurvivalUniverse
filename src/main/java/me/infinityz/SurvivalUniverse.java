@@ -51,6 +51,7 @@ public class SurvivalUniverse extends JavaPlugin {
         getCommand("admin").setExecutor(ch);
         getCommand("helper").setExecutor(ch);
         getCommand("ally").setExecutor(ch);
+        getCommand("home").setExecutor(ch);
         Bukkit.getPluginManager().registerEvents(new GlobalListeners(this), this);
         Bukkit.getPluginManager().registerEvents(new CityListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ChunkListener(this), this);
