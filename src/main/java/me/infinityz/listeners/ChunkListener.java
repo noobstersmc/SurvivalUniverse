@@ -37,7 +37,7 @@ public class ChunkListener implements Listener {
         final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
         if (chunk == null)
             return;
-        final SurvivalPlayer player = instance.playerManager.survivalPlayerMap.get(chunk.owner);
+        final SurvivalPlayer player = instance.playerManager.getPlayerFromId(e.getPlayer().getUniqueId());
         if (chunk.isOwner(e.getPlayer()) || (player != null && player.isAlly(e.getPlayer().getUniqueId())))
             return;
         e.setCancelled(true);

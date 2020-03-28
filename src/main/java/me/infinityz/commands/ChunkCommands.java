@@ -30,6 +30,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
     SurvivalUniverse instance;
     String[] helpArray = { "check", "delete", "own" };
     String[] helperHelpArray = { "add", "remove" };
+    String[] allyHelpArray = { "add", "remove", "list" };
 
     public ChunkCommands(SurvivalUniverse instance) {
         this.instance = instance;
@@ -328,13 +329,81 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
             }
 
-        }
-        else if (cmd.getName().equals("ally")) {
-            Player player = (Player)sender;
-            SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
-            if(su!= null){
-                for(UUID id : su.allies){
-                    Bukkit.broadcastMessage("" + id);
+        } else if (cmd.getName().equals("ally")) {
+            final Player player = (Player) sender;
+            final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
+            if (args.length == 0) {
+                return false;
+            }
+            switch (args[0].toLowerCase()) {
+                case "add": {
+                    if (args.length < 2)
+                        return false;
+                    final OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
+                    if (su.isAlly(target.getUniqueId())) {
+                        sender.sendMessage(target.getName() + " is already an ally!");
+                        return true;
+                    }
+                    final List<UUID> allies = new ArrayList<>(Arrays.asList(su.allies));
+                    allies.add(target.getUniqueId());
+                    final UUID[] newArray = new UUID[allies.size()];
+                    for (int i = 0; i < allies.size(); i++)
+                        newArray[i] = allies.get(i);
+                    su.allies = newArray;
+                    Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+                        try {
+                            instance.databaseManager.database.savePlayer(player.getUniqueId());
+                        } catch (Exception e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    });
+
+                    sender.sendMessage("You've succesfully added " + target.getName() + "  to your allies.");
+                    break;
+                }
+                case "remove": {
+                    if (args.length < 2)
+                        return false;
+                    final OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
+
+                    if (!su.isAlly(target.getUniqueId())) {
+                        sender.sendMessage(target.getName() + " is not an ally!");
+                        return true;
+                    }
+
+                    final List<UUID> allies = new ArrayList<>(Arrays.asList(su.allies));
+                    allies.removeIf(a -> a.getMostSignificantBits() == target.getUniqueId().getMostSignificantBits());
+                    final UUID[] newArray = new UUID[allies.size()];
+                    for (int i = 0; i < allies.size(); i++)
+                        newArray[i] = allies.get(i);
+                    su.allies = newArray;
+                    Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+                        try {
+                            instance.databaseManager.database.savePlayer(player.getUniqueId());
+                        } catch (Exception e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    });
+                    sender.sendMessage("You've succesfully removed " + target.getName() + "  from your allies.");
+                    break;
+                }
+                case "list": {
+                    String str = "";
+                    if (su != null) {
+                        for (UUID uuid : su.allies) {
+                            if (uuid != null && uuid.toString().length() > 6) {
+                                str = str + " - " + Bukkit.getOfflinePlayer(uuid).getName() + "\n";
+                            }
+                        }
+                    }
+                    sender.sendMessage("Your current allies are: \n" + str);
+
+                    break;
+                }
+                default: {
+                    return false;
                 }
             }
             return true;
@@ -379,6 +448,30 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
                 break;
 
+            }
+            case "ally": {
+                if (args.length == 1) {
+                    if (args[0].isEmpty()) {
+                        return Arrays.asList(allyHelpArray);
+                    }
+                    final List<String> list = new ArrayList<>();
+                    for (String string : allyHelpArray) {
+                        // Check if it matches any of the arguments available then autocomplete
+                        if (string.toLowerCase().startsWith(args[0].toLowerCase()))
+                            list.add(string);
+                    }
+                    return list;
+                }
+                if (args.length > 1) {
+                    switch (args[0].toLowerCase()) {
+                        case "remove":
+                        case "add":
+                            return null;
+                        default:
+                            return Collections.emptyList();
+                    }
+                }
+                break;
             }
         }
 

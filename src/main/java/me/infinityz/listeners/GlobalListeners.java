@@ -95,9 +95,11 @@ public class GlobalListeners implements Listener {
     }
 
     @EventHandler
-    public void onEntity(PlayerInteractAtEntityEvent e){
-        if(e.getRightClicked() == null)return;
-        if(e.getRightClicked().getType() != EntityType.ARMOR_STAND)return;
+    public void onEntity(PlayerInteractAtEntityEvent e) {
+        if (e.getRightClicked() == null)
+            return;
+        if (e.getRightClicked().getType() != EntityType.ARMOR_STAND)
+            return;
         e.setCancelled(maybeInCityOrChunk(e.getRightClicked().getLocation(), e.getPlayer()));
     }
 
@@ -108,24 +110,24 @@ public class GlobalListeners implements Listener {
         }
     }
 
-    /*Issue #3 - Problem 1, feature added. */
+    /* Issue #3 - Problem 1, feature added. */
     @EventHandler
-    public void onSpread(BlockIgniteEvent e){
-        if(e.getCause() == IgniteCause.ARROW){
-            if(e.getIgnitingEntity() instanceof Projectile){
+    public void onSpread(BlockIgniteEvent e) {
+        if (e.getCause() == IgniteCause.ARROW) {
+            if (e.getIgnitingEntity() instanceof Projectile) {
                 Projectile proj = (Projectile) e.getIgnitingEntity();
-                if(proj.getShooter() != null && proj.getShooter() instanceof Player){
+                if (proj.getShooter() != null && proj.getShooter() instanceof Player) {
                     Player player = (Player) proj.getShooter();
                     boolean can = maybeInCityOrChunk(e.getBlock().getLocation(), player);
                     e.setCancelled(can);
-                    if(can){
-                        Bukkit.getScheduler().runTaskLater(instance, ()->{
+                    if (can) {
+                        Bukkit.getScheduler().runTaskLater(instance, () -> {
                             player.updateInventory();
                         }, 10);
                     }
                 }
             }
-            
+
         }
     }
 
@@ -431,7 +433,7 @@ public class GlobalListeners implements Listener {
         }
     }
 
-    /* Issue #3 - Water and Lava buckets - Start*/
+    /* Issue #3 - Water and Lava buckets - Start */
     @EventHandler
     public void onBucketEmpty(PlayerBucketEmptyEvent e) {
         e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer()));
@@ -442,7 +444,7 @@ public class GlobalListeners implements Listener {
     public void onBucketFill(PlayerBucketFillEvent e) {
         e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer()));
     }
-    /* Issue #3 - Water and Lava buckets - End here*/
+    /* Issue #3 - Water and Lava buckets - End here */
 
     boolean maybeInCityOrChunk(Location location, Player player) {
         boolean bol = false;
@@ -456,10 +458,13 @@ public class GlobalListeners implements Listener {
         if (chunk != null) {
             if (chunk.owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
                 bol = false;
+                return bol;
             }
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(chunk.owner);
-            if(su!= null){
-                bol = su.isAlly(player.getUniqueId());
+            if (su != null) {
+                if(su.isAlly(player.getUniqueId())){
+                    bol = false;
+                }
             }
 
         }

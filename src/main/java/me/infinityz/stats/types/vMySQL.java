@@ -99,7 +99,14 @@ public class vMySQL implements IDatabase {
 
     @Override
     public void updateStats(UUID uuid) throws Exception {
-        // TODO Auto-generated method stub
+        final SurvivalPlayer su = SurvivalUniverse.instance.playerManager.getPlayerFromId(uuid);
+        if (su == null)
+            return;
+        updateStats(uuid, su);
+    }
+
+    @Override
+    public void updateStats(UUID uuid, SurvivalPlayer survivalPlayer) throws Exception {
 
     }
 

@@ -19,7 +19,12 @@ public class PlayerManager {
     }
 
     public SurvivalPlayer getPlayerFromId(UUID uuid){
-        return survivalPlayerMap.get(uuid);
+        return compareTo(uuid) == null ? new SurvivalPlayer(uuid, 1) : survivalPlayerMap.get(uuid);
+    }
+
+    SurvivalPlayer compareTo(UUID id){
+        for(SurvivalPlayer pl : survivalPlayerMap.values())if(pl.playerUUID.getMostSignificantBits() == id.getMostSignificantBits())return pl;
+        return null;
     }
 
     
