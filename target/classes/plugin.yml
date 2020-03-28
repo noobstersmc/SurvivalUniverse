@@ -10,4 +10,4 @@ commands:
   admin:
   helper:
   ally:
-    usage: "\u00A7cCommand usage: /<command> <add:list:remove> [Player]
+    usage: "\u00A7cCommand usage: /<command> <add:list:remove> [Player]"
