@@ -30,12 +30,14 @@ import net.md_5.bungee.api.ChatColor;
  */
 public class TeleportCommands implements CommandExecutor, Listener {
     Map<UUID, Long> delay;
+    Map<UUID, Boolean> no_delay;
     Map<UUID, Location> futureLocationsMap;
     SurvivalUniverse instance;
 
     public TeleportCommands(SurvivalUniverse instance) {
         futureLocationsMap = new HashMap<>();
         delay = new HashMap<>();
+        no_delay = new HashMap<>();
         this.instance = instance;
     }
 
@@ -54,8 +56,12 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     sender.sendMessage("Target player is null!");
                     return true;
                 }
-                if (delay.containsKey(pl.getUniqueId())) {
-                    pl.sendMessage("ChatColor.RED + You already are teleporting!");
+                if (futureLocationsMap.containsKey(pl.getUniqueId())) {
+                    pl.sendMessage(ChatColor.RED + "You already are teleporting!");
+                    return true;
+                }
+                if (delay.containsKey(pl.getUniqueId()) || no_delay.containsKey(pl.getUniqueId())) {
+                    pl.sendMessage(ChatColor.RED + "You already are teleporting!");
                     return true;
                 }
                 pl.sendMessage(ChatColor.GREEN + "Teleporting you in 5 seconds...");
@@ -68,6 +74,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 Bukkit.getScheduler().runTaskLater(instance, () -> {
                     final Location loc = futureLocationsMap.get(pl.getUniqueId()).clone();
                     if (loc == null) {
+                        futureLocationsMap.remove(pl.getUniqueId());
                         sender.sendMessage(ChatColor.RED + "An error ocurred while teleporting you!");
                         return;
                     }
@@ -99,15 +106,17 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 if (args.length > 4) {
                     loc.setWorld(Bukkit.getWorld(args[4]));
                 }
-                if (delay.containsKey(pl.getUniqueId())) {
+                if (delay.containsKey(pl.getUniqueId()) || no_delay.containsKey(pl.getUniqueId())) {
                     pl.sendMessage(ChatColor.RED + "You already are teleporting!");
                     return true;
                 }
                 pl.sendMessage(ChatColor.GREEN + "Teleporting you in 5 seconds...");
                 addEffectsAndSound(pl);
                 // Add it to the delay map, it's a map to avoid duplicates (lazy).
+                no_delay.put(pl.getUniqueId(), true);
                 // Schedule a task for later (5s) to teleport.
                 Bukkit.getScheduler().runTaskLater(instance, () -> {
+                    no_delay.remove(pl.getUniqueId());
                     pl.teleport(loc);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
@@ -245,7 +254,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
         new BukkitRunnable() {
             final long initial_ms = System.currentTimeMillis();
             long ms;
-            Location loc;
+            Location loc = futureLocationsMap.put(player.getUniqueId(), null);
 
             @Override
             public void run() {
