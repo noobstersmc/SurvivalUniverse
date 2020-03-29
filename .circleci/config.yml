@@ -1,9 +1,9 @@
 version: 2.1
-
 orbs:
-  maven: circleci/maven@0.0.12
-
+  maven-build: inclasstoday/maven-build@1.0.0
 workflows:
-  maven_test:
+  version: 2.1
+  verify_and_build:
     jobs:
-      - maven/test # checkout, build, test, and upload test results
+      - maven-build/docker_build:
+          context: maven-build
