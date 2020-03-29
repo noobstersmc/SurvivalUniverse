@@ -58,7 +58,6 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     pl.sendMessage("ChatColor.RED + You already are teleporting!");
                     return true;
                 }
-                final Long time = System.currentTimeMillis();
                 pl.sendMessage(ChatColor.GREEN + "Teleporting you in 5 seconds...");
                 addEffectsAndSound(pl);
                 // Add it to the delay map, it's a map to avoid duplicates (lazy).
@@ -104,15 +103,11 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     pl.sendMessage(ChatColor.RED + "You already are teleporting!");
                     return true;
                 }
-                final Long time = System.currentTimeMillis();
                 pl.sendMessage(ChatColor.GREEN + "Teleporting you in 5 seconds...");
                 addEffectsAndSound(pl);
                 // Add it to the delay map, it's a map to avoid duplicates (lazy).
-                delay.put(pl.getUniqueId(), time);
                 // Schedule a task for later (5s) to teleport.
                 Bukkit.getScheduler().runTaskLater(instance, () -> {
-                    if (!delay.remove(pl.getUniqueId(), time))
-                        return;
                     pl.teleport(loc);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
@@ -166,27 +161,25 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     sender.sendMessage("Target player is null!");
                     return true;
                 }
-                if (pl.getBedSpawnLocation() != null) {
-                    sender.sendMessage(ChatColor.GREEN + "Teleporting to spawn...");
-                    if (delay.containsKey(pl.getUniqueId())) {
-                        pl.sendMessage(ChatColor.RED + "You already are teleporting!");
-                        return true;
-                    }
-                    final Long time = System.currentTimeMillis();
-                    pl.sendMessage(ChatColor.GREEN + "Teleporting you to home in 5 seconds...");
-                    addEffectsAndSound(pl);
-                    // Schedule a task for later (5s) to teleport.
-                    Bukkit.getScheduler().runTaskLater(instance, () -> {
-                        if (!delay.remove(pl.getUniqueId(), time))
-                            return;
-                        pl.teleport(pl.getBedSpawnLocation());
-                        pl.sendMessage(ChatColor.GREEN + "Teleported!");
-                        playCompletedSound(pl);
-
-                    }, 20 * 5);
-                } else {
-                    sender.sendMessage(ChatColor.RED + "You are homeless.");
+                if (delay.containsKey(pl.getUniqueId())) {
+                    pl.sendMessage(ChatColor.RED + "You already are teleporting!");
+                    return true;
                 }
+                final Long time = System.currentTimeMillis();
+                pl.sendMessage(ChatColor.GREEN + "Teleporting you to spawn in 5 seconds...");
+                // Add it to the delay map, it's a map to avoid duplicates (lazy).
+                delay.put(pl.getUniqueId(), time);
+                addEffectsAndSound(pl);
+                // Schedule a task for later (5s) to teleport.
+                Bukkit.getScheduler().runTaskLater(instance, () -> {
+                    if (!delay.remove(pl.getUniqueId(), time))
+                        return;
+                    pl.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
+                    pl.sendMessage(ChatColor.GREEN + "Teleported!");
+                    playCompletedSound(pl);
+
+                }, 20 * 5);
+
                 return true;
             }
         }
@@ -270,7 +263,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 System.out.println("Found a location for " + player.getName() + " in " + (ms - initial_ms) / 1000.0D);
                 return;
             }
-        }.runTaskTimer(instance, 0, 5);
+        }.runTaskTimer(instance, 0, 10);
     }
 
     int getRandomInBetween(int max, int min) {
