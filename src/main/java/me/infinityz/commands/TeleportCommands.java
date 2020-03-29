@@ -55,11 +55,11 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     return true;
                 }
                 if (delay.containsKey(pl.getUniqueId())) {
-                    pl.sendMessage("You already are teleporting!");
+                    pl.sendMessage("ChatColor.RED + You already are teleporting!");
                     return true;
                 }
                 final Long time = System.currentTimeMillis();
-                pl.sendMessage("Teleporting you in 5 seconds...");
+                pl.sendMessage(ChatColor.GREEN + "Teleporting you in 5 seconds...");
                 addEffectsAndSound(pl);
                 // Add it to the delay map, it's a map to avoid duplicates (lazy).
                 delay.put(pl.getUniqueId(), time);
@@ -69,14 +69,14 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 Bukkit.getScheduler().runTaskLater(instance, () -> {
                     final Location loc = futureLocationsMap.get(pl.getUniqueId()).clone();
                     if (loc == null) {
-                        sender.sendMessage("An error ocurred while teleporting you!");
+                        sender.sendMessage(ChatColor.RED + "An error ocurred while teleporting you!");
                         return;
                     }
                     if (!delay.remove(pl.getUniqueId(), time))
                         return;
                     futureLocationsMap.remove(pl.getUniqueId());
                     pl.teleport(loc);
-                    pl.sendMessage("Teleported!");
+                    pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
 
                 }, 20 * 5);
@@ -100,11 +100,11 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     loc.setWorld(Bukkit.getWorld(args[4]));
                 }
                 if (delay.containsKey(pl.getUniqueId())) {
-                    pl.sendMessage("You already are teleporting!");
+                    pl.sendMessage(ChatColor.RED + "You already are teleporting!");
                     return true;
                 }
                 final Long time = System.currentTimeMillis();
-                pl.sendMessage("Teleporting you in 5 seconds...");
+                pl.sendMessage(ChatColor.GREEN + "Teleporting you in 5 seconds...");
                 addEffectsAndSound(pl);
                 // Add it to the delay map, it's a map to avoid duplicates (lazy).
                 delay.put(pl.getUniqueId(), time);
@@ -131,13 +131,13 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     return true;
                 }
                 if (pl.getBedSpawnLocation() != null) {
-                    sender.sendMessage("Teleporting to home...");
+                    sender.sendMessage(ChatColor.GREEN + "Teleporting to home...");
                     if (delay.containsKey(pl.getUniqueId())) {
-                        pl.sendMessage("You already are teleporting!");
+                        pl.sendMessage(ChatColor.RED + "You already are teleporting!");
                         return true;
                     }
                     final Long time = System.currentTimeMillis();
-                    pl.sendMessage("Teleporting you home in 5 seconds...");
+                    pl.sendMessage(ChatColor.GREEN + "Teleporting you to home in 5 seconds...");
                     addEffectsAndSound(pl);
                     // Add it to the delay map, it's a map to avoid duplicates (lazy).
                     delay.put(pl.getUniqueId(), time);
@@ -146,12 +146,12 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         if (!delay.remove(pl.getUniqueId(), time))
                             return;
                         pl.teleport(pl.getBedSpawnLocation());
-                        pl.sendMessage("Teleported!");
+                        pl.sendMessage(ChatColor.GREEN + "Teleported!");
                         playCompletedSound(pl);
 
                     }, 20 * 5);
                 } else {
-                    sender.sendMessage("You are homeless.");
+                    sender.sendMessage(ChatColor.RED + "You are homeless.");
                 }
                 return true;
             }
