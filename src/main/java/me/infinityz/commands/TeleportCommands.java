@@ -155,6 +155,23 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 }
                 return true;
             }
+            case "spawn": {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("player cmd only");
+                    return true;
+                }
+                final Player player = (Player) sender;
+                if (delay.containsKey(player.getUniqueId())) {
+                    player.sendMessage(
+                            ChatColor.translateAlternateColorCodes('&', "&cYou already are in queue to go to spawn"));
+                    return true;
+                }
+
+                teleport(player, 5, "&aYou will be teleported to spawn in 5 seconds!",
+                        Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0), true);
+
+                return true;
+            }
         }
 
         return true;
