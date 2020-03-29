@@ -62,7 +62,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 pl.sendMessage(ChatColor.GREEN + "Teleporting you in 5 seconds...");
                 addEffectsAndSound(pl);
                 // Add it to the delay map, it's a map to avoid duplicates (lazy).
-                delay.put(pl.getUniqueId(), time);
+                // delay.put(pl.getUniqueId(), time);
                 // Start a timer task that can find the location in the mean time.
                 findSafeLocation(pl, Bukkit.getWorlds().get(0));
                 // Schedule a task for later (5s) to teleport.
@@ -72,8 +72,9 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         sender.sendMessage(ChatColor.RED + "An error ocurred while teleporting you!");
                         return;
                     }
-                    if (!delay.remove(pl.getUniqueId(), time))
-                        return;
+                    /*
+                     * if (!delay.remove(pl.getUniqueId(), time)) return;
+                     */
                     futureLocationsMap.remove(pl.getUniqueId());
                     pl.teleport(loc);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
@@ -131,7 +132,6 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     return true;
                 }
                 if (pl.getBedSpawnLocation() != null) {
-                    sender.sendMessage(ChatColor.GREEN + "Teleporting to home...");
                     if (delay.containsKey(pl.getUniqueId())) {
                         pl.sendMessage(ChatColor.RED + "You already are teleporting!");
                         return true;
@@ -156,20 +156,37 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 return true;
             }
             case "spawn": {
-                if (!(sender instanceof Player)) {
-                    sender.sendMessage("player cmd only");
+                if (sender instanceof ConsoleCommandSender) {
+                    sender.sendMessage(
+                            "Console can't use this command because consoles don't have a home. They are, indeed, spawnless.");
                     return true;
                 }
-                final Player player = (Player) sender;
-                if (delay.containsKey(player.getUniqueId())) {
-                    player.sendMessage(
-                            ChatColor.translateAlternateColorCodes('&', "&cYou already are in queue to go to spawn"));
+                final Player pl = (Player) sender;
+                if (pl == null) {
+                    sender.sendMessage("Target player is null!");
                     return true;
                 }
+                if (pl.getBedSpawnLocation() != null) {
+                    sender.sendMessage(ChatColor.GREEN + "Teleporting to spawn...");
+                    if (delay.containsKey(pl.getUniqueId())) {
+                        pl.sendMessage(ChatColor.RED + "You already are teleporting!");
+                        return true;
+                    }
+                    final Long time = System.currentTimeMillis();
+                    pl.sendMessage(ChatColor.GREEN + "Teleporting you to home in 5 seconds...");
+                    addEffectsAndSound(pl);
+                    // Schedule a task for later (5s) to teleport.
+                    Bukkit.getScheduler().runTaskLater(instance, () -> {
+                        if (!delay.remove(pl.getUniqueId(), time))
+                            return;
+                        pl.teleport(pl.getBedSpawnLocation());
+                        pl.sendMessage(ChatColor.GREEN + "Teleported!");
+                        playCompletedSound(pl);
 
-                teleport(player, 5, "&aYou will be teleported to spawn in 5 seconds!",
-                        Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0), true);
-
+                    }, 20 * 5);
+                } else {
+                    sender.sendMessage(ChatColor.RED + "You are homeless.");
+                }
                 return true;
             }
         }

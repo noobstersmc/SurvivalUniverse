@@ -57,6 +57,7 @@ public class SurvivalUniverse extends JavaPlugin {
         getCommand("home").setExecutor(teleport);
         getCommand("t").setExecutor(teleport);
         getCommand("randomtp").setExecutor(teleport);
+        getCommand("spawn").setExecutor(teleport);
         Bukkit.getPluginManager().registerEvents(new GlobalListeners(this), this);
         Bukkit.getPluginManager().registerEvents(teleport, this);
         Bukkit.getPluginManager().registerEvents(new CityListener(this), this);

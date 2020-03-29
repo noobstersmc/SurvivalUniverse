@@ -12,6 +12,7 @@ commands:
     usage: "\u00A7cCommand usage: /<command> <Player> <x> <y> <z> [world]"
   randomtp:
     usage: "\u00A7cCommand usage: /<command> <Player>"
+  spawn:
   admin:
   helper:
   ally:
