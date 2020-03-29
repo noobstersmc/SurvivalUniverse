@@ -121,7 +121,7 @@ public class ChunkListener implements Listener {
         if(e.getEntityType() == EntityType.ARMOR_STAND){
             return;
         }
-        if (e.getSpawnReason() == SpawnReason.EGG || e.getSpawnReason() == SpawnReason.BREEDING
+        if (e.getSpawnReason() == SpawnReason.EGG || e.getSpawnReason() == SpawnReason.BREEDING || e.getSpawnReason() == SpawnReason.SPAWNER
                 || e.getSpawnReason() == SpawnReason.SPAWNER_EGG)
             return;
         e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
