@@ -113,7 +113,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     if (!delay.remove(pl.getUniqueId(), time))
                         return;
                     pl.teleport(loc);
-                    pl.sendMessage("Teleported!");
+                    pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
 
                 }, 20 * 5);
