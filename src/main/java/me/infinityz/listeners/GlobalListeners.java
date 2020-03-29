@@ -1,9 +1,12 @@
 package me.infinityz.listeners;
 
+import java.util.Collection;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.command.BlockCommandSender;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -37,6 +40,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
@@ -491,7 +495,7 @@ public class GlobalListeners implements Listener {
             return;
         if (e.getDamager().getType() != EntityType.CREEPER)
             return;
-            final Player player = (Player) e.getEntity();
+        final Player player = (Player) e.getEntity();
         if (player.getHealth() + player.getAbsorptionAmount() - e.getFinalDamage() <= 0) {
             final Creeper creeper = (Creeper) e.getDamager();
             if (creeper.isPowered()) {
@@ -500,11 +504,51 @@ public class GlobalListeners implements Listener {
                 final Location playerLocation = player.getLocation().clone();
                 meta.setOwner(player.getName());
                 stack.setItemMeta(meta);
-                Bukkit.getScheduler().runTaskLater(instance, ()->{
+                Bukkit.getScheduler().runTaskLater(instance, () -> {
                     playerLocation.getWorld().dropItemNaturally(playerLocation, stack);
                 }, 4);
             }
         }
 
+    }
+
+    @EventHandler
+    public void onPreCommand(ServerCommandEvent w) {
+
+        if (w.getSender() instanceof BlockCommandSender) {
+            BlockCommandSender sender = (BlockCommandSender) w.getSender();
+            for (String arg : w.getCommand().split(" ")) {
+                switch (arg.toLowerCase()) {
+                    case "@a": {
+                        Bukkit.getOnlinePlayers().forEach(all -> {
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                                    w.getCommand().replace("@a", all.getName()));
+                        });
+                        break;
+                    }
+                    case "@p": {
+                        try {
+                            final Collection<Entity> collection = sender.getBlock().getWorld().getNearbyEntities(
+                                    sender.getBlock().getLocation(), 1.0, 255.0, 1.0,
+                                    it -> it.getType() == EntityType.PLAYER);
+                            final Entity first = collection.iterator().hasNext() ? collection.iterator().next() : null;
+                            if (first == null)
+                                return;
+                            final Player player = (Player) first;
+                            if (player != null)
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                                        w.getCommand().replace("@p", player.getName()));
+                                
+
+                        } catch (Exception e) {
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+
+            }
+        }
     }
 }

@@ -12,7 +12,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
@@ -404,19 +403,6 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 default: {
                     return false;
                 }
-            }
-            return true;
-        }else if (cmd.getName().equalsIgnoreCase("home")) {
-            if(sender instanceof ConsoleCommandSender){
-                sender.sendMessage("Console can't use this command because consoles don't have a home. They are, indeed, homeless.");
-                return true;
-            }
-            final Player player = (Player) sender;
-            if(player.getBedSpawnLocation() != null){
-                sender.sendMessage("Teleporting to home...");
-                player.teleport(player.getBedSpawnLocation());
-            }else{                
-            sender.sendMessage("You are homeless.");
             }
             return true;
         }

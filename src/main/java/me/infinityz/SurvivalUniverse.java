@@ -13,6 +13,7 @@ import me.infinityz.cities.City;
 import me.infinityz.cities.CityManager;
 import me.infinityz.commands.ChunkCommands;
 import me.infinityz.commands.PvPCommand;
+import me.infinityz.commands.TeleportCommands;
 import me.infinityz.listeners.ChunkListener;
 import me.infinityz.listeners.CityListener;
 import me.infinityz.listeners.GlobalListeners;
@@ -51,8 +52,13 @@ public class SurvivalUniverse extends JavaPlugin {
         getCommand("admin").setExecutor(ch);
         getCommand("helper").setExecutor(ch);
         getCommand("ally").setExecutor(ch);
-        getCommand("home").setExecutor(ch);
+        
+        final TeleportCommands teleport = new TeleportCommands(this);
+        getCommand("home").setExecutor(teleport);
+        getCommand("t").setExecutor(teleport);
+        getCommand("randomtp").setExecutor(teleport);
         Bukkit.getPluginManager().registerEvents(new GlobalListeners(this), this);
+        Bukkit.getPluginManager().registerEvents(teleport, this);
         Bukkit.getPluginManager().registerEvents(new CityListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ChunkListener(this), this);
         loadChunks();

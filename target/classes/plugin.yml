@@ -7,8 +7,12 @@ commands:
   pvp:
   chunk:
   city:
-  admin:
   home:
+  t:
+    usage: "\u00A7cCommand usage: /<command> <Player> <x> <y> <z> [world]"
+  randomtp:
+    usage: "\u00A7cCommand usage: /<command> <Player>"
+  admin:
   helper:
   ally:
     usage: "\u00A7cCommand usage: /<command> <add:list:remove> [Player]"

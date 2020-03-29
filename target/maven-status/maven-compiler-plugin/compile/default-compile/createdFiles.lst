@@ -22,9 +22,11 @@ me\infinityz\scoreboard\ScoreboardManager.class
 me\infinityz\chunks\IChunk.class
 me\infinityz\stats\types\vMySQL.class
 me\infinityz\listeners\PlayerChangeChunkEvent.class
+me\infinityz\commands\TeleportCommands$1.class
 me\infinityz\scoreboard\FastBoard$TeamMode.class
 me\infinityz\stats\core\MySQL.class
 me\infinityz\players\SurvivalPlayer.class
+me\infinityz\commands\TeleportCommands.class
 me\infinityz\scoreboard\FastBoard$VersionType.class
 me\infinityz\listeners\GlobalListeners$1.class
 me\infinityz\scoreboard\FastBoard$ScoreboardAction.class
