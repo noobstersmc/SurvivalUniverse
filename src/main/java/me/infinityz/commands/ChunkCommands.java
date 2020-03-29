@@ -341,7 +341,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         return false;
                     final OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
                     if (su.isAlly(target.getUniqueId())) {
-                        sender.sendMessage(target.getName() + " is already an ally!");
+                        sender.sendMessage(ChatColor.RED + target.getName() + " is already an ally!");
                         return true;
                     }
                     final List<UUID> allies = new ArrayList<>(Arrays.asList(su.allies));
@@ -358,7 +358,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         }
                     });
 
-                    sender.sendMessage("You've succesfully added " + target.getName() + " to your allies.");
+                    sender.sendMessage(ChatColor.GREEN + "You've succesfully added " + target.getName() + " to your allies.");
                     break;
                 }
                 case "remove": {
@@ -367,7 +367,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     final OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
 
                     if (!su.isAlly(target.getUniqueId())) {
-                        sender.sendMessage(target.getName() + " is not an ally!");
+                        sender.sendMessage(ChatColor.RED + target.getName() + " is not an ally!");
                         return true;
                     }
 
@@ -384,7 +384,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                             e.printStackTrace();
                         }
                     });
-                    sender.sendMessage("You've succesfully removed " + target.getName() + " from your allies.");
+                    sender.sendMessage(ChatColor.GREEN + "You've succesfully removed " + target.getName() + " from your allies.");
                     break;
                 }
                 case "list": {
@@ -396,11 +396,12 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                             }
                         }
                     }
-                    sender.sendMessage("Your current allies are: \n" + str);
+                    sender.sendMessage(ChatColor.GREEN + "Your current allies are: \n" + ChatColor.WHITE + str);
 
                     break;
                 }
                 default: {
+                    sender.sendMessage(ChatColor.RED +"Command usage: /ally <add:remove> [Player]");
                     return false;
                 }
             }
