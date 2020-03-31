@@ -481,7 +481,7 @@ public class GlobalListeners implements Listener {
     }
     
     /* Fix Issue #6 - 1 */
-    boolean maybeInCityOrChunk(Location location, Player player, boolean notHelper) {
+    boolean maybeInCityOrChunk(Location location, Player player, boolean Ignore) {
         boolean bol = false;
         final City city = instance.cityManager.isInCity(location);
         if (city != null) {
@@ -499,6 +499,7 @@ public class GlobalListeners implements Listener {
             if (su != null) {
                 if (su.isAlly(player.getUniqueId())) {
                     bol = false;
+                    //Allies should still be able to interact
                 }
             }
 
