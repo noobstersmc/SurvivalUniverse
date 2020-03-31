@@ -490,11 +490,9 @@ public class GlobalListeners implements Listener {
         boolean helper = false;
         final City city = instance.cityManager.isInCity(location);
         if (city != null) {
-            if (!(city.isOwner(player) || city.isHelper(player))) {
+            helper = city.isHelper(player);
+            if (!(city.isOwner(player) || helper)) {
                 bol = true;
-            }
-            if(city.isHelper(player)){
-                helper = true;
             }
         }
         final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(location.getChunk());
