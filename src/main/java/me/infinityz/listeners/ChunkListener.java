@@ -124,7 +124,8 @@ public class ChunkListener implements Listener {
         if (e.getSpawnReason() == SpawnReason.EGG || e.getSpawnReason() == SpawnReason.BREEDING
                 || e.getSpawnReason() == SpawnReason.SPAWNER || e.getSpawnReason() == SpawnReason.SPAWNER_EGG
                 || e.getSpawnReason() == SpawnReason.CURED || e.getSpawnReason() == SpawnReason.INFECTION
-                || e.getSpawnReason() == SpawnReason.INFECTION)
+                || e.getSpawnReason() == SpawnReason.DISPENSED_EGG|| e.getSpawnReason() == SpawnReason.SHEARED
+                || e.getSpawnReason() == SpawnReason.LIGHTNING || e.getSpawnReason() == SpawnReason.BEEHIVE)
             return;
         e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
     }
