@@ -227,7 +227,9 @@ public class GlobalListeners implements Listener {
                 if (e.getClickedBlock().getType().toString().toLowerCase().contains("plate")
                         || e.getClickedBlock().getType().toString().toLowerCase().endsWith("bed"))
                     return;
-                e.setCancelled(maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer()));
+                    /* Fix Issue #6 - 2 */
+                if(e.getItem() != null && e.getItem().getType() == Material.ENDER_PEARL)return;
+                e.setCancelled(maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer(), true));
                 return;
         }
     }
@@ -443,13 +445,13 @@ public class GlobalListeners implements Listener {
     /* Issue #3 - Water and Lava buckets - Start */
     @EventHandler
     public void onBucketEmpty(PlayerBucketEmptyEvent e) {
-        e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer()));
+        e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer(), true));
 
     }
 
     @EventHandler
     public void onBucketFill(PlayerBucketFillEvent e) {
-        e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer()));
+        e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer(), true));
     }
     /* Issue #3 - Water and Lava buckets - End here */
 
@@ -458,6 +460,32 @@ public class GlobalListeners implements Listener {
         final City city = instance.cityManager.isInCity(location);
         if (city != null) {
             if (!(city.isOwner(player) || city.isHelper(player))) {
+                bol = true;
+            }
+        }
+        final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(location.getChunk());
+        if (chunk != null) {
+            if (chunk.owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
+                bol = false;
+                return bol;
+            }
+            final SurvivalPlayer su = instance.playerManager.getPlayerFromId(chunk.owner);
+            if (su != null) {
+                if (su.isAlly(player.getUniqueId())) {
+                    bol = false;
+                }
+            }
+
+        }
+        return bol;
+    }
+    
+    /* Fix Issue #6 - 1 */
+    boolean maybeInCityOrChunk(Location location, Player player, boolean notHelper) {
+        boolean bol = false;
+        final City city = instance.cityManager.isInCity(location);
+        if (city != null) {
+            if (!(city.isOwner(player))) {
                 bol = true;
             }
         }

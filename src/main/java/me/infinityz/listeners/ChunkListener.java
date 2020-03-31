@@ -47,16 +47,14 @@ public class ChunkListener implements Listener {
     public void onDamage(EntityDamageByEntityEvent e) {
         if (e.isCancelled())
             return;
-        if (e.getEntity() instanceof Monster || e.getEntity() instanceof Player) /* Issue #3 - Player Damage*/
+        if (e.getEntity() instanceof Monster || e.getEntity() instanceof Player) /* Issue #3 - Player Damage */
             return;
         PlayerChunk c = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
         if (c != null) {
             if (e.getDamager() instanceof Player) {
                 Player pl = (Player) e.getDamager();
                 SurvivalPlayer su = instance.playerManager.getPlayerFromId(c.owner);
-                if (c.isOwner(pl)
-                 || (su != null && 
-                 su.isAlly(pl.getUniqueId()))) {
+                if (c.isOwner(pl) || (su != null && su.isAlly(pl.getUniqueId()))) {
                     e.setCancelled(false);
                     return;
                 }
@@ -100,11 +98,13 @@ public class ChunkListener implements Listener {
     public void onExplode(BlockExplodeEvent e) {
         e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getBlock().getChunk()) != null);
     }
-    
+
     @EventHandler
     public void onExplode(EntityExplodeEvent e) {
-        if(e.getEntity().getType() != EntityType.PRIMED_TNT)return;
-        e.blockList().removeIf(block -> (PlayerChunk) instance.chunkManager.findIChunkfromChunk(block.getChunk()) != null);
+        if (e.getEntity().getType() != EntityType.PRIMED_TNT)
+            return;
+        e.blockList()
+                .removeIf(block -> (PlayerChunk) instance.chunkManager.findIChunkfromChunk(block.getChunk()) != null);
     }/* Issue #3 - TNT In city fixed */
 
     @EventHandler
@@ -118,11 +118,13 @@ public class ChunkListener implements Listener {
     public void onSpawn(CreatureSpawnEvent e) {
         if (e.getEntityType() == EntityType.WITHER)
             return;
-        if(e.getEntityType() == EntityType.ARMOR_STAND){
+        if (e.getEntityType() == EntityType.ARMOR_STAND) {
             return;
         }
-        if (e.getSpawnReason() == SpawnReason.EGG || e.getSpawnReason() == SpawnReason.BREEDING || e.getSpawnReason() == SpawnReason.SPAWNER
-                || e.getSpawnReason() == SpawnReason.SPAWNER_EGG)
+        if (e.getSpawnReason() == SpawnReason.EGG || e.getSpawnReason() == SpawnReason.BREEDING
+                || e.getSpawnReason() == SpawnReason.SPAWNER || e.getSpawnReason() == SpawnReason.SPAWNER_EGG
+                || e.getSpawnReason() == SpawnReason.CURED || e.getSpawnReason() == SpawnReason.INFECTION
+                || e.getSpawnReason() == SpawnReason.INFECTION)
             return;
         e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
     }
