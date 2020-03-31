@@ -12,6 +12,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -35,7 +36,6 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
@@ -200,7 +200,7 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
         if (Bukkit.getOnlinePlayers().size() >= 20 && !e.getPlayer().hasPermission("reserved.slot"))
-            e.disallow(Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
+            e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
                     "&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U"));
     }
 
@@ -228,7 +228,11 @@ public class GlobalListeners implements Listener {
                         || e.getClickedBlock().getType().toString().toLowerCase().endsWith("bed"))
                     return;
                     /* Fix Issue #6 - 2 */
-                if(e.getItem() != null && e.getItem().getType() == Material.ENDER_PEARL)return;
+                if(e.getItem() != null && e.getItem().getType() == Material.ENDER_PEARL){
+                    e.setUseInteractedBlock(Result.DENY);
+                    e.setUseItemInHand(Result.ALLOW);
+                    return;
+                }
                 e.setCancelled(maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer(), true));
                 return;
         }
@@ -483,14 +487,19 @@ public class GlobalListeners implements Listener {
     /* Fix Issue #6 - 1 */
     boolean maybeInCityOrChunk(Location location, Player player, boolean Ignore) {
         boolean bol = false;
+        boolean helper = false;
         final City city = instance.cityManager.isInCity(location);
         if (city != null) {
-            if (!(city.isOwner(player))) {
+            if (!(city.isOwner(player) || city.isHelper(player))) {
                 bol = true;
+            }
+            if(city.isHelper(player)){
+                helper = true;
             }
         }
         final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(location.getChunk());
         if (chunk != null) {
+            if(helper) bol = true;
             if (chunk.owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
                 bol = false;
                 return bol;
