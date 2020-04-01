@@ -232,8 +232,9 @@ public class GlobalListeners implements Listener {
                     e.setUseInteractedBlock(Result.DENY);
                     e.setUseItemInHand(Result.ALLOW);
                     return;
-                }
-                e.setCancelled(maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer(), true));
+                }//Maybe delete this?
+                e.setUseItemInHand(Result.DEFAULT);
+                e.setUseInteractedBlock(maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer(), true) ? Result.DENY : Result.ALLOW);
                 return;
         }
     }
