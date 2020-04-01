@@ -14,6 +14,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -82,6 +83,17 @@ public class TeleportCommands implements CommandExecutor, Listener {
                      * if (!delay.remove(pl.getUniqueId(), time)) return;
                      */
                     futureLocationsMap.remove(pl.getUniqueId());
+                    final Entity entity = pl.getVehicle();
+                    if (entity != null) {
+                        entity.eject();
+                        entity.teleport(loc);
+                    }
+                    Bukkit.getScheduler().runTaskLater(instance, ()->{
+                        if(entity != null){
+                            entity.eject();
+                            entity.addPassenger(pl);
+                        }
+                    }, 10L);
                     pl.teleport(loc);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
@@ -117,11 +129,17 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 // Schedule a task for later (5s) to teleport.
                 Bukkit.getScheduler().runTaskLater(instance, () -> {
                     no_delay.remove(pl.getUniqueId());
-                    if (pl.getVehicle() != null) {
-                        pl.eject();
-                        pl.getVehicle().eject();
-                        pl.getVehicle().teleport(loc);
+                    final Entity entity = pl.getVehicle();
+                    if (entity != null) {
+                        entity.eject();
+                        entity.teleport(loc);
                     }
+                    Bukkit.getScheduler().runTaskLater(instance, ()->{
+                        if(entity != null){
+                            entity.eject();
+                            entity.addPassenger(pl);
+                        }
+                    }, 10L);
                     pl.teleport(loc);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
@@ -155,12 +173,18 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         if (!delay.remove(pl.getUniqueId(), time))
                             return;
 
-                        if (pl.getVehicle() != null) {
-                            pl.eject();
-                            pl.getVehicle().eject();
-                            pl.getVehicle().teleport(pl.getBedSpawnLocation());
+                        final Entity entity = pl.getVehicle();
+                        if (entity != null) {
+                            entity.eject();
+                            entity.teleport(pl.getBedSpawnLocation());
                         }
                         pl.teleport(pl.getBedSpawnLocation());
+                        Bukkit.getScheduler().runTaskLater(instance, ()->{
+                            if(entity != null){
+                                entity.eject();
+                                entity.addPassenger(pl);
+                            }
+                        }, 10L);
                         pl.sendMessage(ChatColor.GREEN + "Teleported!");
                         playCompletedSound(pl);
 
@@ -195,12 +219,19 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     if (!delay.remove(pl.getUniqueId(), time))
                         return;
 
-                    if (pl.getVehicle() != null) {
-                        pl.eject();
-                        pl.getVehicle().eject();
-                        pl.getVehicle().teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
+                    final Entity entity = pl.getVehicle();
+                    if (entity != null) {
+                        entity.eject();
+                        entity.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
                     }
+                    Bukkit.getScheduler().runTaskLater(instance, ()->{
+                        if(entity != null){
+                            entity.eject();
+                            entity.addPassenger(pl);
+                        }
+                    }, 10L);
                     pl.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
+                    
 
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);

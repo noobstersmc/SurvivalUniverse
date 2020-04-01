@@ -137,6 +137,22 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     }
                     break;
                 }
+                case "list": {
+                    final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
+                    if(su != null){
+                        player.sendMessage("Your chunks are: ");
+                        instance.chunkManager.ownedChunksMap.forEach((c, id)->{
+                            if(id.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()){
+                                player.sendMessage(" - " + c.chunkWorld + " (" + c.chunkX + ", " + c.chunkZ + ")");                            }
+
+                        });
+
+                    }else{
+                        sender.sendMessage("Error");
+                    }
+
+                    break;
+                }
                 default: {
                     sender.sendMessage("Command usage: /chunk <check:delete:own> [Player]");
                     break;
