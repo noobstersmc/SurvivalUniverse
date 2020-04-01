@@ -14,6 +14,8 @@ commands:
     usage: "\u00A7cCommand usage: /<command> <Player>"
   spawn:
   admin:
+    permission: admin.admin
   helper:
+    permission: admin.helper
   ally:
     usage: "\u00A7cCommand usage: /<command> <add:list:remove> [Player]"
