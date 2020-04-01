@@ -117,6 +117,11 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 // Schedule a task for later (5s) to teleport.
                 Bukkit.getScheduler().runTaskLater(instance, () -> {
                     no_delay.remove(pl.getUniqueId());
+                    if (pl.getVehicle() != null) {
+                        pl.eject();
+                        pl.getVehicle().eject();
+                        pl.getVehicle().teleport(loc);
+                    }
                     pl.teleport(loc);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
@@ -149,6 +154,12 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     Bukkit.getScheduler().runTaskLater(instance, () -> {
                         if (!delay.remove(pl.getUniqueId(), time))
                             return;
+
+                        if (pl.getVehicle() != null) {
+                            pl.eject();
+                            pl.getVehicle().eject();
+                            pl.getVehicle().teleport(pl.getBedSpawnLocation());
+                        }
                         pl.teleport(pl.getBedSpawnLocation());
                         pl.sendMessage(ChatColor.GREEN + "Teleported!");
                         playCompletedSound(pl);
@@ -183,7 +194,14 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 Bukkit.getScheduler().runTaskLater(instance, () -> {
                     if (!delay.remove(pl.getUniqueId(), time))
                         return;
+
+                    if (pl.getVehicle() != null) {
+                        pl.eject();
+                        pl.getVehicle().eject();
+                        pl.getVehicle().teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
+                    }
                     pl.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
+
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
 
