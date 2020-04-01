@@ -93,7 +93,10 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         entity.eject();
                         entity.teleport(loc);
                         entityList.removeIf(it->it.getType() == EntityType.PLAYER);
-                        entityList.forEach(it-> it.teleport(loc));
+                        Bukkit.getScheduler().runTaskLater(instance, ()->{
+                            entity.teleport(loc);
+                            entityList.forEach(it-> it.teleport(loc));
+                        }, 1);
                     }
                     pl.teleport(loc);
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
@@ -140,9 +143,12 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     final List<Entity> entityList = new ArrayList<>( entity != null ? entity.getPassengers() : Collections.emptyList()); 
                     if (entity != null) {
                         entity.eject();
-                        entity.teleport(loc);
                         entityList.removeIf(it-> it.getType() == EntityType.PLAYER);
-                        entityList.forEach(it-> it.teleport(loc));
+                        
+                        Bukkit.getScheduler().runTaskLater(instance, ()->{
+                            entity.teleport(loc);
+                            entityList.forEach(it-> it.teleport(loc));
+                        }, 1);
                     }
                     pl.teleport(loc);
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
@@ -188,8 +194,11 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         if (entity != null) {
                             entity.eject();
                             entityList.removeIf(it-> it.getType() == EntityType.PLAYER);
+                            
+                        Bukkit.getScheduler().runTaskLater(instance, ()->{
                             entityList.forEach(it-> it.teleport(pl.getBedSpawnLocation()));
                             entity.teleport(pl.getBedSpawnLocation());
+                        }, 1);
                         }
                         pl.teleport(pl.getBedSpawnLocation());
                         Bukkit.getScheduler().runTaskLater(instance, ()->{
@@ -237,8 +246,10 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     if (entity != null) {
                         entity.eject();
                         entityList.removeIf(it -> it.getType() == EntityType.PLAYER);
-                        entityList.forEach(it -> it.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0)));
-                        entity.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
+                        Bukkit.getScheduler().runTaskLater(instance, ()->{
+                            entity.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
+                            entityList.forEach(it -> it.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0)));
+                        }, 1);
                     }
                     pl.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
