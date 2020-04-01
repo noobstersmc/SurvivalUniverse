@@ -195,7 +195,6 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         Bukkit.getScheduler().runTaskLater(instance, ()->{
                             if(entity != null){
                                 entity.eject();
-                                entity.addPassenger(pl);
                                 entityList.forEach(it-> entity.addPassenger(it));                                
                             }
                         }, 20L);
