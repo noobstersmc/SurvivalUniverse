@@ -102,9 +102,10 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
-                           // entityList.forEach(it->entity.addPassenger(it));
+                            entityList.forEach(it->entity.addPassenger(it));
+                            entity.addPassenger(pl);
                         }
-                    }, 20L);
+                    }, 5L);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
 
@@ -154,9 +155,10 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
-                            //entityList.forEach(it->entity.addPassenger(it));
+                            entityList.forEach(it->entity.addPassenger(it));
+                            entity.addPassenger(pl);
                         }
-                    }, 20L);
+                    }, 5L);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
 
@@ -204,9 +206,10 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         Bukkit.getScheduler().runTaskLater(instance, ()->{
                             if(entity != null){
                                 entity.eject();
-                                //entityList.forEach(it-> entity.addPassenger(it));                                
+                                entityList.forEach(it-> entity.addPassenger(it));       
+                                entity.addPassenger(pl);                         
                             }
-                        }, 20L);
+                        }, 5L);
                         pl.sendMessage(ChatColor.GREEN + "Teleported!");
                         playCompletedSound(pl);
 
@@ -255,9 +258,10 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
-                            //entityList.forEach(it-> entity.addPassenger(it));
+                            entityList.forEach(it-> entity.addPassenger(it));
+                            entity.addPassenger(pl);
                         }
-                    }, 20L);
+                    }, 5l);
                     
 
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
