@@ -1,6 +1,9 @@
 package me.infinityz.commands;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -15,6 +18,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -84,17 +88,21 @@ public class TeleportCommands implements CommandExecutor, Listener {
                      */
                     futureLocationsMap.remove(pl.getUniqueId());
                     final Entity entity = pl.getVehicle();
+                    final List<Entity> entityList = new ArrayList<>( entity != null ? entity.getPassengers() : Collections.emptyList()); 
                     if (entity != null) {
                         entity.eject();
                         entity.teleport(loc);
+                        entityList.removeIf(it->it.getType() == EntityType.PLAYER);
+                        entityList.forEach(it-> it.teleport(loc));
                     }
+                    pl.teleport(loc);
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
                             entity.addPassenger(pl);
+                            entityList.forEach(it->entity.addPassenger(it));
                         }
-                    }, 10L);
-                    pl.teleport(loc);
+                    }, 20L);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
 
@@ -130,17 +138,21 @@ public class TeleportCommands implements CommandExecutor, Listener {
                 Bukkit.getScheduler().runTaskLater(instance, () -> {
                     no_delay.remove(pl.getUniqueId());
                     final Entity entity = pl.getVehicle();
+                    final List<Entity> entityList = new ArrayList<>( entity != null ? entity.getPassengers() : Collections.emptyList()); 
                     if (entity != null) {
                         entity.eject();
                         entity.teleport(loc);
+                        entityList.removeIf(it-> it.getType() == EntityType.PLAYER);
+                        entityList.forEach(it-> it.teleport(loc));
                     }
+                    pl.teleport(loc);
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
                             entity.addPassenger(pl);
+                            entityList.forEach(it->entity.addPassenger(it));
                         }
-                    }, 10L);
-                    pl.teleport(loc);
+                    }, 20L);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
                     playCompletedSound(pl);
 
@@ -174,8 +186,11 @@ public class TeleportCommands implements CommandExecutor, Listener {
                             return;
 
                         final Entity entity = pl.getVehicle();
+                        final List<Entity> entityList = new ArrayList<>( entity != null ? entity.getPassengers() : Collections.emptyList()); 
                         if (entity != null) {
                             entity.eject();
+                            entityList.removeIf(it-> it.getType() == EntityType.PLAYER);
+                            entityList.forEach(it-> it.teleport(pl.getBedSpawnLocation()));
                             entity.teleport(pl.getBedSpawnLocation());
                         }
                         pl.teleport(pl.getBedSpawnLocation());
@@ -183,8 +198,9 @@ public class TeleportCommands implements CommandExecutor, Listener {
                             if(entity != null){
                                 entity.eject();
                                 entity.addPassenger(pl);
+                                entityList.forEach(it-> entity.addPassenger(it));                                
                             }
-                        }, 10L);
+                        }, 20L);
                         pl.sendMessage(ChatColor.GREEN + "Teleported!");
                         playCompletedSound(pl);
 
@@ -220,17 +236,21 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         return;
 
                     final Entity entity = pl.getVehicle();
+                    final List<Entity> entityList = new ArrayList<>( entity != null ? entity.getPassengers() : Collections.emptyList()); 
                     if (entity != null) {
                         entity.eject();
+                        entityList.removeIf(it -> it.getType() == EntityType.PLAYER);
+                        entityList.forEach(it -> it.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0)));
                         entity.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
                     }
+                    pl.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
                             entity.addPassenger(pl);
+                            entityList.forEach(it-> entity.addPassenger(it));
                         }
-                    }, 10L);
-                    pl.teleport(Bukkit.getWorlds().get(0).getSpawnLocation().add(0.0, 1.5, 0.0));
+                    }, 20L);
                     
 
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
