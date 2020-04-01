@@ -99,7 +99,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
-                            entityList.forEach(it->entity.addPassenger(it));
+                           // entityList.forEach(it->entity.addPassenger(it));
                         }
                     }, 20L);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
@@ -148,7 +148,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
-                            entityList.forEach(it->entity.addPassenger(it));
+                            //entityList.forEach(it->entity.addPassenger(it));
                         }
                     }, 20L);
                     pl.sendMessage(ChatColor.GREEN + "Teleported!");
@@ -195,7 +195,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
                         Bukkit.getScheduler().runTaskLater(instance, ()->{
                             if(entity != null){
                                 entity.eject();
-                                entityList.forEach(it-> entity.addPassenger(it));                                
+                                //entityList.forEach(it-> entity.addPassenger(it));                                
                             }
                         }, 20L);
                         pl.sendMessage(ChatColor.GREEN + "Teleported!");
@@ -244,7 +244,7 @@ public class TeleportCommands implements CommandExecutor, Listener {
                     Bukkit.getScheduler().runTaskLater(instance, ()->{
                         if(entity != null){
                             entity.eject();
-                            entityList.forEach(it-> entity.addPassenger(it));
+                            //entityList.forEach(it-> entity.addPassenger(it));
                         }
                     }, 20L);
                     
