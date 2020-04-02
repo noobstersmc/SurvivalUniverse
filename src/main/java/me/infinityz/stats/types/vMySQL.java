@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 
 import me.infinityz.SurvivalUniverse;
 import me.infinityz.players.SurvivalPlayer;
@@ -118,6 +121,48 @@ public class vMySQL implements IDatabase {
         } catch (Exception ignore) {
         }
         return false;
+    }
+
+    @Override
+    public void logEvent(BlockBreakEvent brk) throws Exception {
+        Location loc = brk.getBlock().getLocation();
+        double x_abs = Math.abs(loc.getX());
+        double z_abs = Math.abs(loc.getZ());
+        if (x_abs > 3000 || z_abs > 3000)
+            return;
+        String location = loc.getWorld().getName() + " (" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + ")";
+
+        mysql.update(String.format(
+            "INSERT INTO SU_BLOCK_LOG (id, UUID, blockType, eventType, location, cancelled) VALUES(NULL, '%s', '%s', '%s', '%s', %s);",
+            (brk.getPlayer() != null ? brk.getPlayer().getName() : "Not a player"),
+            brk.getBlock().getType().toString(), 
+            brk.getEventName(),
+            location,
+            brk.isCancelled() + ""
+            ));
+            
+
+    }
+
+    @Override
+    public void logEvent(BlockPlaceEvent place) throws Exception {
+        Location loc = place.getBlock().getLocation();
+        double x_abs = Math.abs(loc.getX());
+        double z_abs = Math.abs(loc.getZ());
+        if (x_abs > 3000 || z_abs > 3000)
+            return;
+        String location = loc.getWorld().getName() + " (" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + ")";
+
+        mysql.update(String.format(
+            "INSERT INTO SU_BLOCK_LOG (id, UUID, blockType, eventType, location, cancelled) VALUES(NULL, '%s', '%s', '%s', '%s', %s);",
+            (place.getPlayer() != null ? place.getPlayer().getName() : "Not a player"),
+            place.getBlock().getType().toString(), 
+            place.getEventName(),
+            location,
+            place.isCancelled() + ""
+            ));
+            
+
     }
 
 }

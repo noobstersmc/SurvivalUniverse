@@ -44,6 +44,7 @@ public class MySQL {
             properties.setProperty("requireSSL", "false");
             con = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database, properties);
             update("CREATE TABLE IF NOT EXISTS SurvivalUniversePlayers (UUID VARCHAR(100) NOT NULL PRIMARY KEY, allies TEXT)");
+            update("CREATE TABLE IF NOT EXISTS SU_BLOCK_LOG (id MEDIUMINT NOT NULL AUTO_INCREMENT PRIMARY KEY, UUID VARCHAR(100) NOT NULL, blockType VARCHAR(32) NOT NULL, eventType VARCHAR(32) NOT NULL, location VARCHAR(64) NOT NULL, cancelled BOOLEAN NOT NULL)");
         }
     }
 
