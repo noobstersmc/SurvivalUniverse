@@ -1,6 +1,7 @@
 package me.infinityz.listeners;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -18,9 +19,10 @@ public class DatabaseLoggerListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBreak(BlockBreakEvent e) {
+        final Material type = e.getBlock().getType();
         Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
             try {
-                instance.databaseManager.database.logEvent(e);
+                instance.databaseManager.database.logEvent(e, type);
             } catch (Exception e1) {
                 e1.printStackTrace();
             }

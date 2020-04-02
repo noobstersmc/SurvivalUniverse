@@ -2,6 +2,7 @@ package me.infinityz.stats;
 
 import java.util.UUID;
 
+import org.bukkit.Material;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 
@@ -16,7 +17,7 @@ public interface IDatabase {
     void savePlayer(UUID uuid) throws Exception;
     void updateStats(UUID uuid, SurvivalPlayer player) throws Exception;
     void updateStats(UUID uuid) throws Exception;
-    void logEvent(BlockBreakEvent brk) throws Exception;
+    void logEvent(BlockBreakEvent brk, Material type) throws Exception;
     void logEvent(BlockPlaceEvent place) throws Exception;
     
 }
