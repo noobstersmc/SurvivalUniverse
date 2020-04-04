@@ -3,6 +3,7 @@ me\infinityz\cities\CityManager.class
 me\infinityz\listeners\ChunkListener.class
 me\infinityz\listeners\CityListener.class
 me\infinityz\stats\IDatabase.class
+me\infinityz\listeners\DatabaseLoggerListener$1.class
 me\infinityz\scoreboard\FastReflection.class
 me\infinityz\listeners\GlobalListeners.class
 me\infinityz\players\PlayerManager.class

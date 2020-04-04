@@ -28,7 +28,7 @@ import net.md_5.bungee.api.ChatColor;
 public class ChunkCommands implements CommandExecutor, TabCompleter {
 
     SurvivalUniverse instance;
-    String[] helpArray = { "check", "delete", "own" };
+    String[] helpArray = { "check", "delete", "own", "list"};
     String[] helperHelpArray = { "add", "remove" };
     String[] allyHelpArray = { "add", "remove", "list" };
 
@@ -143,7 +143,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         player.sendMessage("Your chunks are: ");
                         instance.chunkManager.ownedChunksMap.forEach((c, id)->{
                             if(id.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()){
-                                player.sendMessage(" - " + c.chunkWorld + " (" + c.chunkX + ", " + c.chunkZ + ")");                            }
+                                player.sendMessage(" - " + c.chunkWorld.getName() + " (" + c.chunkX + ", " + c.chunkZ + ")");                            }
 
                         });
 
