@@ -95,6 +95,7 @@ public class DatabaseLoggerListener implements Listener {
                         .filter(it -> it.getType() == EntityType.VILLAGER)
                         .filter(it -> (((Villager) it).getVillagerLevel() == 1
                                 && ((Villager) it).getVillagerExperience() == 0)
+                                && ((Villager)it).getMemory(MemoryKey.JOB_SITE) != null
                                 && ((Villager)it).getMemory(MemoryKey.JOB_SITE).equals(e.getBlock().getLocation()))
                         .findFirst().ifPresent(it -> {
                             ((Villager)it).setMemory(MemoryKey.JOB_SITE, e.getBlock().getLocation());
