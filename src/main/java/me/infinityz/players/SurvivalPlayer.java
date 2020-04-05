@@ -11,7 +11,7 @@ import me.infinityz.SurvivalUniverse;
  */
 public class SurvivalPlayer {
     public UUID playerUUID;
-    public UUID[] allies;
+    public UUID[] allies = new UUID[0];
     public boolean pvp = false;
 
     public SurvivalPlayer(UUID uuid) {
@@ -21,26 +21,23 @@ public class SurvivalPlayer {
             Bukkit.getScheduler().runTaskLater(SurvivalUniverse.instance, () -> {
                 if (SurvivalUniverse.instance.databaseManager.alliesCachedData.get(uuid) != null) {
                     this.allies = SurvivalUniverse.instance.databaseManager.alliesCachedData.get(uuid);
-                } else {
-                    this.allies = new UUID[0];
                 }
             }, 20);
-        } else {
-            this.allies = SurvivalUniverse.instance.databaseManager.alliesCachedData.get(uuid);
+            return;
         }
+        this.allies = SurvivalUniverse.instance.databaseManager.alliesCachedData.get(uuid);
     }
 
     public SurvivalPlayer(UUID uuid, int i) {
         this.playerUUID = uuid;
-        this.allies = new UUID[0];        
         SurvivalUniverse.instance.playerManager.survivalPlayerMap.put(uuid, this);
         try {
-            SurvivalUniverse.instance.databaseManager.database.loadPlayer(uuid);            
+            SurvivalUniverse.instance.databaseManager.database.loadPlayer(uuid);
             this.allies = SurvivalUniverse.instance.databaseManager.alliesCachedData.get(uuid);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
     }
 
     public boolean isAlly(UUID uuid) {

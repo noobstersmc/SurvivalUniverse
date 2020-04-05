@@ -2,6 +2,7 @@ package me.infinityz.players;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import me.infinityz.SurvivalUniverse;
@@ -19,12 +20,12 @@ public class PlayerManager {
     }
 
     public SurvivalPlayer getPlayerFromId(UUID uuid) {
-        return compareTo(uuid) == null ? new SurvivalPlayer(uuid, 1) : survivalPlayerMap.get(uuid);
+        final Optional<SurvivalPlayer> option = compareTo(uuid);
+        return !option.isPresent() || option == null ? new SurvivalPlayer(uuid, 1) : survivalPlayerMap.get(uuid);
     }
 
-    SurvivalPlayer compareTo(UUID id) {
-        return survivalPlayerMap.values().stream().filter(it -> it != null && it.playerUUID != null
-                && it.playerUUID.getMostSignificantBits() == id.getMostSignificantBits()).findAny().get();
+    Optional<SurvivalPlayer> compareTo(UUID id) {
+        return survivalPlayerMap.values().stream().filter(it -> it.playerUUID.getMostSignificantBits() == id.getMostSignificantBits()).findFirst();
     }
 
 }
