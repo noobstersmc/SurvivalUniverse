@@ -227,14 +227,16 @@ public class GlobalListeners implements Listener {
                 if (e.getClickedBlock().getType().toString().toLowerCase().contains("plate")
                         || e.getClickedBlock().getType().toString().toLowerCase().endsWith("bed"))
                     return;
-                    /* Fix Issue #6 - 2 */
-                if(e.getItem() != null && e.getItem().getType() == Material.ENDER_PEARL){
+                /* Fix Issue #6 - 2 */
+                if (e.getItem() != null && e.getItem().getType() == Material.ENDER_PEARL) {
                     e.setUseInteractedBlock(Result.DENY);
                     e.setUseItemInHand(Result.ALLOW);
                     return;
-                }//Maybe delete this?
+                } // Maybe delete this?
                 e.setUseItemInHand(Result.DEFAULT);
-                e.setUseInteractedBlock(maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer(), true) ? Result.DENY : Result.ALLOW);
+                e.setUseInteractedBlock(
+                        maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer(), true) ? Result.DENY
+                                : Result.ALLOW);
                 return;
         }
     }
@@ -476,7 +478,9 @@ public class GlobalListeners implements Listener {
             }
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(chunk.owner);
             if (su != null) {
-                if (su.isAlly(player.getUniqueId())) {
+                if (su.isAlly(
+                    player.getUniqueId())
+                    ) {
                     bol = false;
                 }
             }
@@ -484,7 +488,7 @@ public class GlobalListeners implements Listener {
         }
         return bol;
     }
-    
+
     /* Fix Issue #6 - 1 */
     boolean maybeInCityOrChunk(Location location, Player player, boolean Ignore) {
         boolean bol = false;
@@ -498,7 +502,8 @@ public class GlobalListeners implements Listener {
         }
         final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(location.getChunk());
         if (chunk != null) {
-            if(helper) bol = true;
+            if (helper)
+                bol = true;
             if (chunk.owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
                 bol = false;
                 return bol;
@@ -507,7 +512,7 @@ public class GlobalListeners implements Listener {
             if (su != null) {
                 if (su.isAlly(player.getUniqueId())) {
                     bol = false;
-                    //Allies should still be able to interact
+                    // Allies should still be able to interact
                 }
             }
 
@@ -575,7 +580,6 @@ public class GlobalListeners implements Listener {
                             if (player != null)
                                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                                         w.getCommand().replace("@p", player.getName()));
-                                
 
                         } catch (Exception e) {
                         }

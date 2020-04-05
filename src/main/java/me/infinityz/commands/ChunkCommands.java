@@ -348,6 +348,10 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
         } else if (cmd.getName().equalsIgnoreCase("ally")) {
             final Player player = (Player) sender;
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
+            if(su == null){
+                player.kickPlayer("An error has ocurred, please relog!");            
+                return false;
+            }
             if (args.length == 0) {
                 return false;
             }

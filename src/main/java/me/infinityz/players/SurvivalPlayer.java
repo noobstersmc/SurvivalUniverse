@@ -32,10 +32,11 @@ public class SurvivalPlayer {
 
     public SurvivalPlayer(UUID uuid, int i) {
         this.playerUUID = uuid;
+        this.allies = new UUID[0];        
+        SurvivalUniverse.instance.playerManager.survivalPlayerMap.put(uuid, this);
         try {
             SurvivalUniverse.instance.databaseManager.database.loadPlayer(uuid);            
             this.allies = SurvivalUniverse.instance.databaseManager.alliesCachedData.get(uuid);
-            SurvivalUniverse.instance.playerManager.survivalPlayerMap.put(uuid, this);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,7 +44,7 @@ public class SurvivalPlayer {
     }
 
     public boolean isAlly(UUID uuid) {
-        if (allies == null || allies.length == 0)
+        if (allies == null || allies.length == 0 || uuid == null)
             return false;
         for (UUID id : allies) {
             if (id.getMostSignificantBits() == uuid.getMostSignificantBits()) {

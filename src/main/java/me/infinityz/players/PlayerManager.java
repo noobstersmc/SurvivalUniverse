@@ -13,19 +13,18 @@ public class PlayerManager {
     public Map<UUID, SurvivalPlayer> survivalPlayerMap;
     SurvivalUniverse instance;
 
-    public PlayerManager(SurvivalUniverse instance){
+    public PlayerManager(SurvivalUniverse instance) {
         this.instance = instance;
         survivalPlayerMap = new HashMap<>();
     }
 
-    public SurvivalPlayer getPlayerFromId(UUID uuid){
+    public SurvivalPlayer getPlayerFromId(UUID uuid) {
         return compareTo(uuid) == null ? new SurvivalPlayer(uuid, 1) : survivalPlayerMap.get(uuid);
     }
 
-    SurvivalPlayer compareTo(UUID id){
-        for(SurvivalPlayer pl : survivalPlayerMap.values())if(pl.playerUUID.getMostSignificantBits() == id.getMostSignificantBits())return pl;
-        return null;
+    SurvivalPlayer compareTo(UUID id) {
+        return survivalPlayerMap.values().stream().filter(it -> it != null && it.playerUUID != null
+                && it.playerUUID.getMostSignificantBits() == id.getMostSignificantBits()).findAny().get();
     }
 
-    
 }
