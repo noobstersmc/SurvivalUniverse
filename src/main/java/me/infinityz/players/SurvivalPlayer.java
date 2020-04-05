@@ -44,6 +44,7 @@ public class SurvivalPlayer {
         if (allies == null || allies.length == 0 || uuid == null)
             return false;
         for (UUID id : allies) {
+            if(id == null || uuid == null)continue;
             if (id.getMostSignificantBits()
              == uuid.getMostSignificantBits()) {
                 return true;
