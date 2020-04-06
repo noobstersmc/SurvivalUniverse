@@ -20,6 +20,6 @@ public class DatabaseManager {
         this.instance = instance;
         this.alliesCachedData = new HashMap<>();
         //TODO: Add support for other databases in the future;
-        this.database = new vMySQL(new MySQL("mc17732", "2fb1d6817e", "mc17732", "66.70.170.174"), this);
+        this.database = new vMySQL(new MySQL("mchost_272512", "p1p2p3p4p5p6", "mchost_272512", "mu1.mchost.pro"), this);
     }
 }
