@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
+import org.bukkit.World.Environment;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -30,7 +31,7 @@ import net.md_5.bungee.api.ChatColor;
 public class ChunkCommands implements CommandExecutor, TabCompleter {
 
     SurvivalUniverse instance;
-    String[] helpArray = { "check", "delete", "own", "list", "claimlist", "claimadd", "claimremove"};
+    String[] helpArray = { "check", "delete", "own", "list", "claimlist", "claimadd", "claimremove" };
     String[] helperHelpArray = { "add", "remove" };
     String[] allyHelpArray = { "add", "remove", "list" };
 
@@ -163,12 +164,17 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     break;
                 }
                 case "claim": {
-                    /* Only allow claim if has played 1h+ */
-                    int played_time_seconds = (player.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20);
-                    if ((played_time_seconds / 3600 ) < 1) {
+                    if (player.getWorld().getEnvironment() != Environment.NORMAL) {
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                
-                        String.format("&cYou have to have played at least one hour to claim a chunk! (%.2f)h", played_time_seconds / 3600.00D)));
+                                "&cYou MUST be in the overworld to use this command."));
+                        return true;
+                    }
+                    /* Only allow claim if has played 1h+ */
+                    final int played_time_seconds = (player.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20);
+                    if ((played_time_seconds / 3600) < 1) {
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                String.format("&cYou have to have played at least one hour to claim a chunk! (%.2f)h",
+                                        played_time_seconds / 3600.00D)));
                         return true;
                     }
                     /* Ensure player isn't null */
@@ -187,7 +193,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         return true;
                     }
                     /* Ensure the chunk player is on is claimable */
-                    final ClaimableChunk claimableChunk = instance.chunkManager
+                    ClaimableChunk claimableChunk = instance.chunkManager
                             .findClaimableChunkFromChunk(player.getLocation().getChunk());
                     if (claimableChunk != null) {
                         final PlayerChunk pu = instance.chunkManager.claimChunk(
@@ -196,15 +202,38 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                             sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
                                     "&aYou've succesfully claimed this chunk!"));
                         }
+                        return true;
+                    }
+                    /** If the chunk is null, try giving the player the nearest chunk. */
+                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                            "&cThis chunk is not claimable, attempting to find a chunk near you..."));
+
+                    claimableChunk = instance.chunkManager.getNearestClaimableChunk(player.getLocation());
+                    if (claimableChunk != null) {
+                        final int x = (claimableChunk.chunkX * 16) + (claimableChunk.chunkX < 0 ? -8 : +8);
+                        final int z = (claimableChunk.chunkZ * 16) + (claimableChunk.chunkZ < 0 ? -8 : +8);
+                        final int y = claimableChunk.chunkWorld.getHighestBlockYAt(x, z) + 2;
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', String
+                                .format("&aChunk found at %d, %d", claimableChunk.chunkX, claimableChunk.chunkZ)));
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), String.format("t %s %d %d %d %s",
+                                player.getName(), x, y, z, claimableChunk.chunkWorld.getName()));
+
+                        final PlayerChunk pu = instance.chunkManager.claimChunk(
+                                instance.playerManager.getPlayerFromId(player.getUniqueId()), claimableChunk);
+                        if (pu != null) {
+                            sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                    "&aYou've succesfully claimed this chunk!"));
+                        }
+                        return true;
+
                     } else {
-                        sender.sendMessage(
-                                ChatColor.translateAlternateColorCodes('&', "&cThis chunk is not claimable!"));
+
                     }
                     break;
                 }
                 case "claimlist": {
                     sender.sendMessage("Available chunks: ");
-                    instance.chunkManager.claimableChunks.keySet().stream().forEach(it -> sender
+                    instance.chunkManager.claimableChunks.keySet().parallelStream().forEach(it -> sender
                             .sendMessage("" + it.chunkX + ", " + it.chunkZ + ", " + it.chunkWorld.getName()));
 
                     break;
@@ -251,10 +280,9 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     }
                     final ClaimableChunk c = instance.chunkManager
                             .findClaimableChunkFromChunk(player.getLocation().getChunk());
-                    if (c != null) {                        
-                        sender.sendMessage(
-                                instance.chunkManager.removeClaimableChunk(c, true) ? "Succesfully removed"
-                                        : "Can't remove this chunk.");
+                    if (c != null) {
+                        sender.sendMessage(instance.chunkManager.removeClaimableChunk(c, true) ? "Succesfully removed"
+                                : "Can't remove this chunk.");
 
                     } else {
                         sender.sendMessage("Can't remove this chunk.");

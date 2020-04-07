@@ -1,12 +1,14 @@
 package me.infinityz.chunks;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 
 import me.infinityz.SurvivalUniverse;
 import me.infinityz.chunks.types.ClaimableChunk;
@@ -58,13 +60,56 @@ public class ChunkManager {
         }
         return false;
     }
+
+    public ClaimableChunk getNearestClaimableChunk(Location loc) {
+        /** Ensure the list of available chunks is not empty */
+        if (claimableChunks.isEmpty())
+            return null;
+
+        /** Return this value later, in the mean time keep it as null */
+        ClaimableChunk claimableChunk = null;
+        /** Obtain the current x and z. Mathematically you would use x and y. */
+        final int x1 = loc.getChunk().getX();
+        final int z1 = loc.getChunk().getZ();
+        /*
+         * Set the shortest distance to the longest possible distance to allow
+         * everyhting in the loop to work
+         */
+        double shortest_distance = Double.MAX_VALUE;
+        /**
+         * Obtain the iterator to use a while loop. For loops work just fine but I
+         * prefer while
+         */
+        final Iterator<ClaimableChunk> iter = claimableChunks.keySet().iterator();
+        /** Check if the iterator has next on each iteration */
+        while (iter.hasNext()) {
+            /** Obtain the next object */
+            final ClaimableChunk c = iter.next();
+            /** Obtain your x2 and z2 */
+            final int x2 = c.chunkX;
+            final int z2 = c.chunkZ;
+            /** Clasical squared distance */
+            final double distance = Math.abs(Math.sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1)));
+            /**
+             * Check if the current shortest distance is greater than the calculated
+             * distance and set it as the new shortest if needed
+             */
+            if (shortest_distance >= distance) {
+                shortest_distance = distance;
+                claimableChunk = c;
+            }
+        }
+        /** Finally return, might be null */
+        return claimableChunk;
+    }
+
     public boolean removeClaimableChunk(ClaimableChunk cu, boolean addToFile) {
-            final List<String> st = instance.claimableChunkFile.getStringList("claimable-chunk-list");
-            st.remove(cu.chunkX + " " + cu.chunkZ + " " + cu.chunkWorld.getName());
-            instance.claimableChunkFile.set("claimable-chunk-list", st);
-            instance.claimableChunkFile.save();
-            instance.claimableChunkFile.reload();
-        return  claimableChunks.remove(cu, 0);
+        final List<String> st = instance.claimableChunkFile.getStringList("claimable-chunk-list");
+        st.remove(cu.chunkX + " " + cu.chunkZ + " " + cu.chunkWorld.getName());
+        instance.claimableChunkFile.set("claimable-chunk-list", st);
+        instance.claimableChunkFile.save();
+        instance.claimableChunkFile.reload();
+        return claimableChunks.remove(cu, 0);
     }
 
     public PlayerChunk claimChunk(SurvivalPlayer su, ClaimableChunk cu) {
