@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,6 +18,7 @@ import org.bukkit.entity.Player;
 
 import me.infinityz.SurvivalUniverse;
 import me.infinityz.chunks.IChunk;
+import me.infinityz.chunks.types.ClaimableChunk;
 import me.infinityz.chunks.types.PlayerChunk;
 import me.infinityz.cities.City;
 import me.infinityz.players.SurvivalPlayer;
@@ -28,7 +30,7 @@ import net.md_5.bungee.api.ChatColor;
 public class ChunkCommands implements CommandExecutor, TabCompleter {
 
     SurvivalUniverse instance;
-    String[] helpArray = { "check", "delete", "own", "list"};
+    String[] helpArray = { "check", "delete", "own", "list" };
     String[] helperHelpArray = { "add", "remove" };
     String[] allyHelpArray = { "add", "remove", "list" };
 
@@ -59,7 +61,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                             return true;
                         }
                         final Chunk c = player.getLocation().getChunk();
-                        IChunk iChunk = instance.chunkManager.findIChunkfromChunk(c);
+                        IChunk iChunk = instance.chunkManager.getChunkNoType(c);
                         if (iChunk == null) {
                             PlayerChunk newIChunk = new PlayerChunk(target.getUniqueId(), c.getWorld().getName(),
                                     c.getX(), c.getZ());
@@ -139,18 +141,119 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
                 case "list": {
                     final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
-                    if(su != null){
+                    if (su != null) {
                         player.sendMessage("Your chunks are: ");
-                        instance.chunkManager.ownedChunksMap.forEach((c, id)->{
-                            if(id.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()){
-                                player.sendMessage(" - " + c.chunkWorld.getName() + " (" + c.chunkX + ", " + c.chunkZ + ")");                            }
+                        instance.chunkManager.ownedChunksMap.forEach((c, id) -> {
+                            if (id.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
+                                player.sendMessage(
+                                        " - " + c.chunkWorld.getName() + " (" + c.chunkX + ", " + c.chunkZ + ")");
+                            }
 
                         });
 
-                    }else{
+                    } else {
                         sender.sendMessage("Error");
                     }
 
+                    break;
+                }
+                case "claim": {
+                    /* Only allow claim if has played 1h+ */
+                    int played_time_seconds = (player.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20);
+                    if ((played_time_seconds / 3600 ) < 1) {
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                
+                        String.format("&cYou have to have played at least one hour to claim a chunk! (%.2f)h", played_time_seconds / 3600.00D)));
+                        return true;
+                    }
+                    /* Ensure player isn't null */
+                    final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
+                    if (su == null) {
+                        sender.sendMessage(
+                                ChatColor.translateAlternateColorCodes('&', "&cAn error has ocurred. please relog"));
+                        return true;
+                    }
+                    /* Limit the claim to only one chunk per player */
+                    if (instance.chunkManager.ownedChunksMap.values().stream()
+                            .filter(it -> it.getMostSignificantBits() == su.playerUUID.getMostSignificantBits())
+                            .findAny().isPresent()) {
+                        sender.sendMessage(
+                                ChatColor.translateAlternateColorCodes('&', "&cYou can only claim one chunk!"));
+                        return true;
+                    }
+                    /* Ensure the chunk player is on is claimable */
+                    final ClaimableChunk claimableChunk = instance.chunkManager
+                            .findClaimableChunkFromChunk(player.getLocation().getChunk());
+                    if (claimableChunk != null) {
+                        final PlayerChunk pu = instance.chunkManager.claimChunk(
+                                instance.playerManager.getPlayerFromId(player.getUniqueId()), claimableChunk);
+                        if (pu != null) {
+                            sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                    "&aYou've succesfully claimed this chunk!"));
+                        }
+                    } else {
+                        sender.sendMessage(
+                                ChatColor.translateAlternateColorCodes('&', "&cThis chunk is not claimable!"));
+                    }
+                    break;
+                }
+                case "claimlist": {
+                    sender.sendMessage("Available chunks: ");
+                    instance.chunkManager.claimableChunks.keySet().stream().forEach(it -> sender
+                            .sendMessage("" + it.chunkX + ", " + it.chunkZ + ", " + it.chunkWorld.getName()));
+
+                    break;
+                }
+                case "claimadd": {
+                    /* Ensure player isn't null */
+                    final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
+                    if (su == null) {
+                        sender.sendMessage(
+                                ChatColor.translateAlternateColorCodes('&', "&cAn error has ocurred. please relog"));
+                        return true;
+                    }
+                    final City city = instance.cityManager.isInCity(player.getLocation());
+                    if (city == null || (!city.isOwner(player))) {
+                        sender.sendMessage(ChatColor.RED + "No permissions");
+                        return true;
+                    }
+                    final IChunk c = instance.chunkManager.getChunkNoType(player.getLocation().getChunk());
+                    if (c == null) {
+                        final ClaimableChunk claimableChunk = new ClaimableChunk(player.getLocation().getChunk().getX(),
+                                player.getLocation().getChunk().getZ(),
+                                player.getLocation().getChunk().getWorld().getName());
+
+                        sender.sendMessage(
+                                instance.chunkManager.addClaimableChunk(claimableChunk, true) ? "Succesfully added"
+                                        : "Can't add this chunk.");
+                    } else {
+                        sender.sendMessage("Can't add this chunk.");
+                    }
+                    break;
+                }
+                case "claimremove": {
+                    /* Ensure player isn't null */
+                    final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
+                    if (su == null) {
+                        sender.sendMessage(
+                                ChatColor.translateAlternateColorCodes('&', "&cAn error has ocurred. please relog"));
+                        return true;
+                    }
+                    final City city = instance.cityManager.isInCity(player.getLocation());
+                    if (city == null || (!city.isOwner(player))) {
+                        sender.sendMessage(ChatColor.RED + "No permissions");
+                        return true;
+                    }
+                    final ClaimableChunk c = instance.chunkManager
+                            .findClaimableChunkFromChunk(player.getLocation().getChunk());
+                    if (c != null) {                        
+                        sender.sendMessage(
+                                instance.chunkManager.removeClaimableChunk(c, true) ? "Succesfully removed"
+                                        : "Can't remove this chunk.");
+
+                    } else {
+                        sender.sendMessage("Can't remove this chunk.");
+                    }
                     break;
                 }
                 default: {
@@ -348,8 +451,8 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
         } else if (cmd.getName().equalsIgnoreCase("ally")) {
             final Player player = (Player) sender;
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
-            if(su == null){
-                player.kickPlayer("An error has ocurred, please relog!");            
+            if (su == null) {
+                player.kickPlayer("An error has ocurred, please relog!");
                 return false;
             }
             if (args.length == 0) {
@@ -378,7 +481,8 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         }
                     });
 
-                    sender.sendMessage(ChatColor.GREEN + "You've succesfully added " + target.getName() + " to your allies.");
+                    sender.sendMessage(
+                            ChatColor.GREEN + "You've succesfully added " + target.getName() + " to your allies.");
                     break;
                 }
                 case "remove": {
@@ -404,7 +508,8 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                             e.printStackTrace();
                         }
                     });
-                    sender.sendMessage(ChatColor.GREEN + "You've succesfully removed " + target.getName() + " from your allies.");
+                    sender.sendMessage(
+                            ChatColor.GREEN + "You've succesfully removed " + target.getName() + " from your allies.");
                     break;
                 }
                 case "list": {
@@ -421,7 +526,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     break;
                 }
                 default: {
-                    sender.sendMessage(ChatColor.RED +"Command usage: /ally <add:remove> [Player]");
+                    sender.sendMessage(ChatColor.RED + "Command usage: /ally <add:remove> [Player]");
                     return false;
                 }
             }

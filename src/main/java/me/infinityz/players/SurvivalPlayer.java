@@ -1,5 +1,7 @@
 package me.infinityz.players;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -40,25 +42,23 @@ public class SurvivalPlayer {
 
     }
 
-    public boolean isAlly(UUID uuid) {
+    public boolean isAlly(UUID uuid, boolean use_legacy) {
         if (allies == null || allies.length == 0 || uuid == null)
             return false;
         for (UUID id : allies) {
-            if(id == null || uuid == null)continue;
-            if (id.getMostSignificantBits()
-             == uuid.getMostSignificantBits()) {
+            if (id == null || uuid == null)
+                continue;
+            if (id.getMostSignificantBits() == uuid.getMostSignificantBits()) {
                 return true;
             }
         }
         return false;
     }
 
-    public void addAlly(UUID uuid) {
-
-    }
-
-    public void removeAlly(UUID uuid) {
-
+    public boolean isAlly(UUID uuid) {
+        return Objects.nonNull(uuid) ? Arrays.asList(allies).stream().filter(Objects::nonNull)
+                .filter(it -> uuid.getMostSignificantBits() == it.getMostSignificantBits()).findFirst().isPresent()
+                : false;
     }
 
 }

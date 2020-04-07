@@ -1,5 +1,7 @@
 package me.infinityz.cities;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
@@ -20,16 +22,6 @@ public class City {
         this.radius = radius;
     }
 
-    public boolean isOwner(UUID player) {
-        if (owners == null || owners.length == 0)
-            return false;
-        for (UUID uuid : owners) {
-            if (player.getMostSignificantBits() == uuid.getMostSignificantBits())
-                return true;
-        }
-        return false;
-    }
-
     public boolean isOwner(Player player) {
         return isOwner(player.getUniqueId());
     }
@@ -38,12 +30,32 @@ public class City {
         return isHelper(player.getUniqueId());
     }
 
-    public boolean isHelper(UUID player) {
+    public boolean isHelper(UUID uuid) {
+        return Objects.nonNull(uuid) ? Arrays.asList(helpers).stream().filter(Objects::nonNull)
+                .filter(it -> uuid.getMostSignificantBits() == it.getMostSignificantBits()).findFirst().isPresent()
+                : false;
+    }
+    public boolean isOwner(UUID uuid) {
+        return Objects.nonNull(uuid) ? Arrays.asList(owners).stream().filter(Objects::nonNull)
+                .filter(it -> uuid.getMostSignificantBits() == it.getMostSignificantBits()).findFirst().isPresent()
+                : false;
+    }
+    
+    public boolean isHelper(UUID player, boolean use_legacy) {
         if (helpers == null || helpers.length == 0)
             return false;
         for (UUID uuid : helpers)
             if (player.getMostSignificantBits() == uuid.getMostSignificantBits())
                 return true;
+        return false;
+    }
+    public boolean isOwner(UUID player, boolean use_legacy) {
+        if (owners == null || owners.length == 0)
+            return false;
+        for (UUID uuid : owners) {
+            if (player.getMostSignificantBits() == uuid.getMostSignificantBits())
+                return true;
+        }
         return false;
     }
 }

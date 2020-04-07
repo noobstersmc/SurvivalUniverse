@@ -41,10 +41,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.server.ServerCommandEvent;
+import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import me.infinityz.SurvivalUniverse;
+import me.infinityz.chunks.IChunk;
 import me.infinityz.chunks.types.PlayerChunk;
 import me.infinityz.cities.City;
 import me.infinityz.cities.CityChangeEvent;
@@ -199,11 +201,15 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
-        if (Bukkit.getOnlinePlayers().size() >= 20 && !e.getPlayer().hasPermission("reserved.slot"))
+        if (Bukkit.getOnlinePlayers().size() >= 30 && !e.getPlayer().hasPermission("reserved.slot"))
             e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
                     "&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U"));
     }
 
+    @EventHandler
+    public void onPing(ServerListPingEvent e){
+        e.setMaxPlayers(30);
+    }
     @EventHandler(priority = EventPriority.LOWEST)
     public void interactEvent(PlayerInteractEvent e) {
         if (e.getClickedBlock() == null || e.getClickedBlock().getType() == Material.AIR)
@@ -286,9 +292,15 @@ public class GlobalListeners implements Listener {
     }
 
     String getZone(Location loc) {
-        final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(loc.getChunk());
-        if (chunk != null)
-            return "Private";
+        final IChunk chunk = instance.chunkManager.getChunkNoType(loc.getChunk());
+        if (chunk != null) {
+            switch(chunk.getClass().getSimpleName().toLowerCase()){
+                case "playerchunk": return "Private";
+                case "claimablechunk": return "Claimable";
+                default: break;
+            }
+            return chunk.getClass().getSimpleName();
+        }
         final City ci = instance.cityManager.isInCity(loc);
         if (ci != null)
             return "City";
@@ -478,9 +490,7 @@ public class GlobalListeners implements Listener {
             }
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(chunk.owner);
             if (su != null) {
-                if (su.isAlly(
-                    player.getUniqueId())
-                    ) {
+                if (su.isAlly(player.getUniqueId())) {
                     bol = false;
                 }
             }

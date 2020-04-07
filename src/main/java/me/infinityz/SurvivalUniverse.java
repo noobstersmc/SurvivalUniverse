@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.infinityz.chunks.ChunkManager;
+import me.infinityz.chunks.types.ClaimableChunk;
 import me.infinityz.chunks.types.PlayerChunk;
 import me.infinityz.cities.City;
 import me.infinityz.cities.CityManager;
@@ -34,6 +35,7 @@ public class SurvivalUniverse extends JavaPlugin {
     public ChunkManager chunkManager;
     public CityManager cityManager;
     public FileConfig chunksFile;
+    public FileConfig claimableChunkFile;
     public FileConfig cityFile;
     public DatabaseManager databaseManager;
 
@@ -44,6 +46,7 @@ public class SurvivalUniverse extends JavaPlugin {
         this.playerManager = new PlayerManager(this);
         this.chunkManager = new ChunkManager(this);
         this.cityManager = new CityManager(this);
+        this.claimableChunkFile = new FileConfig(this, "claimable_chunks.yml", "claimable_chunks.yml");
         this.chunksFile = new FileConfig(this, "chunks.yml", "chunks.yml");
         this.cityFile = new FileConfig(this, "city.yml", "city.yml");
         getCommand("pvp").setExecutor(new PvPCommand(this));
@@ -53,7 +56,7 @@ public class SurvivalUniverse extends JavaPlugin {
         getCommand("admin").setExecutor(ch);
         getCommand("helper").setExecutor(ch);
         getCommand("ally").setExecutor(ch);
-        
+
         final TeleportCommands teleport = new TeleportCommands(this);
         getCommand("home").setExecutor(teleport);
         getCommand("t").setExecutor(teleport);
@@ -67,6 +70,7 @@ public class SurvivalUniverse extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new DatabaseLoggerListener(this), this);
         loadChunks();
         loadCities();
+        loadClaimable();
         this.databaseManager = new DatabaseManager(this);
     }
 
@@ -107,6 +111,16 @@ public class SurvivalUniverse extends JavaPlugin {
             city.helpers = helpers.stream().toArray(UUID[]::new);
             city.owners = owners.stream().toArray(UUID[]::new);
             cityManager.cities.add(city);
+        });
+    }
+
+    void loadClaimable() {
+        claimableChunkFile.getStringList("claimable-chunk-list").forEach(it -> {
+            final String str[] = it.split(" ");
+            final int x = Integer.parseInt(str[0]);
+            final int z = Integer.parseInt(str[1]);
+            final String world = str[2];
+            instance.chunkManager.addClaimableChunk(new ClaimableChunk(x, z, world));
         });
     }
 

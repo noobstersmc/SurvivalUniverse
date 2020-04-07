@@ -26,12 +26,7 @@ public class CityManager {
     }
 
     public City isInCity(Location loc) {
-        for (City city : cities)
-            if (isInRectangle(loc, city))
-                return city;
-        
-
-        return null;
+        return cities.stream().filter(it-> isInRectangle(loc, it)).findFirst().orElse(null);
     }
 
     public boolean isInCircle(final Location loc, final City city) {

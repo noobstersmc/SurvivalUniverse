@@ -7,7 +7,6 @@ import org.bukkit.World;
  */
 public class IChunk {
     public int chunkX, chunkZ;
-    public ChunkType chunkType;
     public World chunkWorld;
 
     public IChunk(){

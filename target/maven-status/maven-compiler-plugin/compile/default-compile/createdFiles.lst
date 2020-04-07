@@ -14,10 +14,10 @@ me\infinityz\commands\PvPCommand.class
 me\infinityz\SurvivalUniverse.class
 me\infinityz\cities\ZoneVector.class
 me\infinityz\chunks\types\PlayerChunk.class
+me\infinityz\chunks\types\ClaimableChunk.class
 me\infinityz\cities\City.class
 me\infinityz\scoreboard\FastBoard$ObjectiveMode.class
 me\infinityz\listeners\DatabaseLoggerListener.class
-me\infinityz\chunks\ChunkType.class
 me\infinityz\commands\ChunkCommands.class
 me\infinityz\chunks\ChunkManager.class
 me\infinityz\scoreboard\ScoreboardManager.class
