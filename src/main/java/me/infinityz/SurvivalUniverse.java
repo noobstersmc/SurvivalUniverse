@@ -52,6 +52,7 @@ public class SurvivalUniverse extends JavaPlugin {
         getCommand("pvp").setExecutor(new PvPCommand(this));
         final ChunkCommands ch = new ChunkCommands(this);
         getCommand("chunk").setExecutor(ch);
+        getCommand("claim").setExecutor(ch);
         getCommand("city").setExecutor(ch);
         getCommand("admin").setExecutor(ch);
         getCommand("helper").setExecutor(ch);

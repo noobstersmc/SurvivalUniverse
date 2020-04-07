@@ -20,8 +20,7 @@ public class PlayerManager {
 
     public SurvivalPlayer getPlayerFromId(UUID uuid) {
         return survivalPlayerMap.values().stream()
-                .filter(it -> it.playerUUID.getMostSignificantBits() == uuid.getMostSignificantBits()).findFirst()
-                .orElse(new SurvivalPlayer(uuid, 1));
+                .filter(it -> it.playerUUID.getMostSignificantBits() == uuid.getMostSignificantBits()).findFirst().orElseGet(() -> new SurvivalPlayer(uuid, 1));
     }
 
 }

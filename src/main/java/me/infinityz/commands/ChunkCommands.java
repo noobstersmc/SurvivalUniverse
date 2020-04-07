@@ -481,7 +481,11 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
             }
 
-        } else if (cmd.getName().equalsIgnoreCase("ally")) {
+        }else if (cmd.getName().equalsIgnoreCase("claim")) {
+            Player player = (Player)sender;
+            player.performCommand("chunk claim");
+         } 
+         else if (cmd.getName().equalsIgnoreCase("ally")) {
             final Player player = (Player) sender;
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
             if (su == null) {
@@ -513,7 +517,6 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                             e.printStackTrace();
                         }
                     });
-
                     sender.sendMessage(
                             ChatColor.GREEN + "You've succesfully added " + target.getName() + " to your allies.");
                     break;
