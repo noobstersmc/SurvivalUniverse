@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
 import org.bukkit.World.Environment;
@@ -210,13 +211,16 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
 
                     claimableChunk = instance.chunkManager.getNearestClaimableChunk(player.getLocation());
                     if (claimableChunk != null) {
-                        final int x = (claimableChunk.chunkX * 16) + (claimableChunk.chunkX < 0 ? -8 : +8);
-                        final int z = (claimableChunk.chunkZ * 16) + (claimableChunk.chunkZ < 0 ? -8 : +8);
-                        final int y = claimableChunk.chunkWorld.getHighestBlockYAt(x, z) + 2;
+                        final Location loc = instance.chunkManager.getCenterLocationChunk(claimableChunk);
+                        loc.add(0.0, 1.0, 0.0);
+                        if (loc ==  null){
+                            sender.sendMessage("An error has ocurred.");
+                            return true;
+                        }
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', String
                                 .format("&aChunk found at %d, %d", claimableChunk.chunkX, claimableChunk.chunkZ)));
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), String.format("t %s %d %d %d %s",
-                                player.getName(), x, y, z, claimableChunk.chunkWorld.getName()));
+                                player.getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), claimableChunk.chunkWorld.getName()));
 
                         final PlayerChunk pu = instance.chunkManager.claimChunk(
                                 instance.playerManager.getPlayerFromId(player.getUniqueId()), claimableChunk);
@@ -233,7 +237,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
                 case "claimlist": {
                     sender.sendMessage("Available chunks: ");
-                    instance.chunkManager.claimableChunks.keySet().parallelStream().forEach(it -> sender
+                    instance.chunkManager.claimableChunks.keySet().parallelStream().filter(it -> it != null && it.chunkWorld != null).forEach(it -> sender
                             .sendMessage("" + it.chunkX + ", " + it.chunkZ + ", " + it.chunkWorld.getName()));
 
                     break;

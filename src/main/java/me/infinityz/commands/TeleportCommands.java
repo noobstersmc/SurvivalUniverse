@@ -28,6 +28,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.infinityz.SurvivalUniverse;
+import me.infinityz.chunks.types.PlayerChunk;
 import net.md_5.bungee.api.ChatColor;
 
 /**
@@ -215,6 +216,52 @@ public class TeleportCommands implements CommandExecutor, Listener {
 
                     }, 20 * 5);
                 } else {
+                    final PlayerChunk pc = instance.chunkManager.getNearestPlayerChunk(pl.getLocation(), pl);
+                    if(pc != null){
+                        final Location loc = instance.chunkManager.getCenterLocationChunk(pc);
+                        if(loc != null){
+                            loc.add(0.5, 1.0, 0.5);
+                            if (delay.containsKey(pl.getUniqueId())) {
+                                pl.sendMessage(ChatColor.RED + "You already are teleporting!");
+                                return true;
+                            }
+                            final Long time = System.currentTimeMillis();
+                            pl.sendMessage(ChatColor.GREEN + "Teleporting you to your nearest chunk in 5 seconds...");
+                            addEffectsAndSound(pl);
+                            // Add it to the delay map, it's a map to avoid duplicates (lazy).
+                            delay.put(pl.getUniqueId(), time);
+                            // Schedule a task for later (5s) to teleport.
+                            Bukkit.getScheduler().runTaskLater(instance, () -> {
+                                if (!delay.remove(pl.getUniqueId(), time))
+                                    return;
+        
+                                final Entity entity = pl.getVehicle();
+                                final List<Entity> entityList = new ArrayList<>( entity != null ? entity.getPassengers() : Collections.emptyList()); 
+                                if (entity != null) {
+                                    entity.eject();
+                                    entityList.removeIf(it-> it.getType() == EntityType.PLAYER);
+                                    
+                                Bukkit.getScheduler().runTaskLater(instance, ()->{
+                                    entityList.forEach(it-> it.teleport(loc));
+                                    entity.teleport(loc);
+                                }, 1);
+                                }
+                                pl.teleport(loc);
+                                Bukkit.getScheduler().runTaskLater(instance, ()->{
+                                    if(entity != null){
+                                        entity.eject();
+                                        entityList.forEach(it-> entity.addPassenger(it));       
+                                        entity.addPassenger(pl);                         
+                                    }
+                                }, 5L);
+                                pl.sendMessage(ChatColor.GREEN + "Teleported!");
+                                playCompletedSound(pl);
+        
+                            }, 20 * 5);
+
+                            return true;
+                        }
+                    }                  
                     sender.sendMessage(ChatColor.RED + "You are homeless.");
                 }
                 return true;
