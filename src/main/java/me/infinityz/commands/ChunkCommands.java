@@ -30,7 +30,7 @@ import net.md_5.bungee.api.ChatColor;
 public class ChunkCommands implements CommandExecutor, TabCompleter {
 
     SurvivalUniverse instance;
-    String[] helpArray = { "check", "delete", "own", "list" };
+    String[] helpArray = { "check", "delete", "own", "list", "claimlist", "claimadd", "claimremove"};
     String[] helperHelpArray = { "add", "remove" };
     String[] allyHelpArray = { "add", "remove", "list" };
 
@@ -140,6 +140,11 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     break;
                 }
                 case "list": {
+                    if (args.length > 1) {
+                        OfflinePlayer of = Bukkit.getOfflinePlayer(args[0]);
+
+                        return true;
+                    }
                     final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
                     if (su != null) {
                         player.sendMessage("Your chunks are: ");
