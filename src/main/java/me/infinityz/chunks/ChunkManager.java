@@ -163,7 +163,7 @@ public class ChunkManager {
 
     public Location getCenterLocationChunk(Chunk c) {
         Location loc = c.getBlock(7, 255, 7).getLocation();
-        loc.setY(loc.getWorld().getHighestBlockYAt(c.getX(), c.getZ()));
+        loc.setY(loc.getWorld().getHighestBlockYAt(loc.getBlockX(), loc.getBlockZ()));
         return loc;
     }
 
