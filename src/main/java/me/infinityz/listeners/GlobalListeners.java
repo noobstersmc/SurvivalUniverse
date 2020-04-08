@@ -201,7 +201,7 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
-        if (Bukkit.getOnlinePlayers().size() >= 30 && !e.getPlayer().hasPermission("reserved.slot"))
+        if (Bukkit.getOnlinePlayers().size() >= 0 && !e.getPlayer().hasPermission("reserved.slot"))
             /**&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U**/ 
             e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
                     "&cMANTENIMIENTO, SOLO VIP"));
