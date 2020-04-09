@@ -204,7 +204,7 @@ public class GlobalListeners implements Listener {
         if (Bukkit.getOnlinePlayers().size() >= 30 && !e.getPlayer().hasPermission("reserved.slot"))
             /**&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U**/ 
             e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
-                    "&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U"));
+                    "&cMANTENIMIENTO, SOLO VIP"));
     }
 
     @EventHandler
