@@ -1,4 +1,4 @@
-[![Build Status](http://panel.noobsters.net:8080/job/Survival%20Unviverse/badge/icon)](http://207.246.114.245:8080/job/Survival-Universe/lastStableBuild/me.infinityz$survival-universe/)
+[![Build Status](http://panel.noobsters.net:8080/job/Survival%20Unviverse/badge/icon)](http://panel.noobsters.net:8080/job/Survival%20Unviverse/lastStableBuild/me.infinityz$survival-universe/)
 
 
 # SurvivalUniverse
