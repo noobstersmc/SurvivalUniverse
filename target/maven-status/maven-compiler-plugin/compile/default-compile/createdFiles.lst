@@ -32,3 +32,4 @@ me\infinityz\commands\TeleportCommands.class
 me\infinityz\scoreboard\FastBoard$VersionType.class
 me\infinityz\listeners\GlobalListeners$1.class
 me\infinityz\scoreboard\FastBoard$ScoreboardAction.class
+me\infinityz\players\ConnectionExample.class

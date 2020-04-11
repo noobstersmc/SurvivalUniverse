@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -131,7 +132,13 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     } else {
                         if (iChunk instanceof PlayerChunk) {
                             PlayerChunk chunk = (PlayerChunk) iChunk;
-                            sender.sendMessage("The owner is " + chunk.owner_last_known_name);
+                            try {
+                                sender.sendMessage("The owner is " + (chunk.owner_last_known_name == null
+                                        ? instance.playerManager.getPlayerNameFromUUID(chunk.owner)
+                                        : chunk.owner_last_known_name));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
 
                         } else {
                             sender.sendMessage("Unsupported, city chunks are not yet working!");
@@ -150,13 +157,11 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
                     if (su != null) {
                         player.sendMessage("Your chunks are: ");
-                        instance.chunkManager.ownedChunksMap.forEach((c, id) -> {
-                            if (id.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
-                                player.sendMessage(
-                                        " - " + c.chunkWorld.getName() + " (" + c.chunkX + ", " + c.chunkZ + ")");
-                            }
-
-                        });
+                        instance.chunkManager.ownedChunksMap.entrySet().parallelStream()
+                                .filter(entry -> entry.getValue().getMostSignificantBits() == player.getUniqueId()
+                                        .getMostSignificantBits())
+                                .forEach(entry -> player.sendMessage(" - " + entry.getKey().chunkWorld.getName() + " ("
+                                        + entry.getKey().chunkX + ", " + entry.getKey().chunkZ + ")"));
 
                     } else {
                         sender.sendMessage("Error");
@@ -213,14 +218,15 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     if (claimableChunk != null) {
                         final Location loc = instance.chunkManager.getCenterLocationChunk(claimableChunk);
                         loc.add(0.0, 1.0, 0.0);
-                        if (loc ==  null){
+                        if (loc == null) {
                             sender.sendMessage("An error has ocurred.");
                             return true;
                         }
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', String
                                 .format("&aChunk found at %d, %d", claimableChunk.chunkX, claimableChunk.chunkZ)));
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), String.format("t %s %d %d %d %s",
-                                player.getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), claimableChunk.chunkWorld.getName()));
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                                String.format("t %s %d %d %d %s", player.getName(), loc.getBlockX(), loc.getBlockY(),
+                                        loc.getBlockZ(), claimableChunk.chunkWorld.getName()));
 
                         final PlayerChunk pu = instance.chunkManager.claimChunk(
                                 instance.playerManager.getPlayerFromId(player.getUniqueId()), claimableChunk);
@@ -237,8 +243,9 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
                 case "claimlist": {
                     sender.sendMessage("Available chunks: ");
-                    instance.chunkManager.claimableChunks.keySet().parallelStream().filter(it -> it != null && it.chunkWorld != null).forEach(it -> sender
-                            .sendMessage("" + it.chunkX + ", " + it.chunkZ + ", " + it.chunkWorld.getName()));
+                    instance.chunkManager.claimableChunks.keySet().parallelStream()
+                            .filter(it -> it != null && it.chunkWorld != null).forEach(it -> sender
+                                    .sendMessage("" + it.chunkX + ", " + it.chunkZ + ", " + it.chunkWorld.getName()));
 
                     break;
                 }
@@ -485,11 +492,10 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
             }
 
-        }else if (cmd.getName().equalsIgnoreCase("claim")) {
-            Player player = (Player)sender;
+        } else if (cmd.getName().equalsIgnoreCase("claim")) {
+            Player player = (Player) sender;
             player.performCommand("chunk claim");
-         } 
-         else if (cmd.getName().equalsIgnoreCase("ally")) {
+        } else if (cmd.getName().equalsIgnoreCase("ally")) {
             final Player player = (Player) sender;
             final SurvivalPlayer su = instance.playerManager.getPlayerFromId(player.getUniqueId());
             if (su == null) {
@@ -554,15 +560,44 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
                 case "list": {
                     String str = "";
+                    final StringBuilder sb = new StringBuilder();
                     if (su != null) {
                         for (UUID uuid : su.allies) {
                             if (uuid != null && uuid.toString().length() > 6) {
                                 str = str + " - " + Bukkit.getOfflinePlayer(uuid).getName() + "\n";
                             }
                         }
-                    }
-                    sender.sendMessage(ChatColor.GREEN + "Your current allies are: \n" + ChatColor.WHITE + str);
+                        if (su.allies.length > 0) {
+                            Arrays.asList(su.allies).stream().filter(Objects::nonNull)
+                                    .filter(it -> it.toString() != null && it.toString().length() > 6).forEach(uuid -> {
+                                        final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+                                        try {
+                                            sb.append(" - " + (offlinePlayer.getName() != null
+                                                    && offlinePlayer.getName().length() > 2
+                                                            ? Bukkit.getOfflinePlayer(uuid).getName()
+                                                            : instance.playerManager
+                                                                    .getPlayerNameFromUUID(offlinePlayer.getUniqueId()))
+                                                    + "\n");
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
 
+                                    });
+
+                        }
+                    }
+                    sender.sendMessage(
+                            ChatColor.GREEN + "Your current allies are: \n" + ChatColor.WHITE + sb.toString().trim());
+
+                    break;
+                }
+                case "test": {
+                    try {
+                        sender.sendMessage(instance.playerManager.getPlayerNameFromUUID(player.getUniqueId()));
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                     break;
                 }
                 default: {
