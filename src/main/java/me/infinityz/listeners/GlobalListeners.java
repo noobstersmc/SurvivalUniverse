@@ -201,15 +201,16 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
-        if (Bukkit.getOnlinePlayers().size() >= 0 && !e.getPlayer().hasPermission("reserved.slot"))
-            /**&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U**/ 
+        if (Bukkit.getOnlinePlayers().size() >= 30 && !e.getPlayer().hasPermission("reserved.slot"))
+            /**&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U**/
+            /**&cMantenimiento\n &fDiscord discord.gg/6PzHNyt\n&6SOLO VIP**/ 
             e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
-                    "&cMantenimiento\n &fDiscord discord.gg/6PzHNyt\n&6SOLO VIP"));
+                    "&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U"));
     }
 
     @EventHandler
     public void onPing(ServerListPingEvent e){
-        e.setMaxPlayers(60);
+        e.setMaxPlayers(30);
     }
     @EventHandler(priority = EventPriority.LOWEST)
     public void interactEvent(PlayerInteractEvent e) {
