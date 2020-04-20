@@ -263,11 +263,11 @@ public class TeleportCommands implements CommandExecutor, Listener {
     Location getRandomLocation(World world) {
         final Location loc = new Location(world, 0, 0, 0);
         if(ThreadLocalRandom.current().nextBoolean()){
-            loc.setX(getRandomInBetween(6000, 3000));
-            loc.setZ(getRandomInBetween(6000, 0));
+            loc.setX(getRandomInBetween(3000, 100));
+            loc.setZ(getRandomInBetween(3000, 0));
         }else{
-            loc.setZ(getRandomInBetween(6000, 3000));
-            loc.setX(getRandomInBetween(6000, 0));
+            loc.setZ(getRandomInBetween(3000, 100));
+            loc.setX(getRandomInBetween(3000, 0));
         }
         loc.setY(loc.getWorld().getHighestBlockYAt(loc.getBlockX(), loc.getBlockZ()));
         return loc;
