@@ -297,7 +297,7 @@ public class GlobalListeners implements Listener {
         final IChunk chunk = instance.chunkManager.getChunkNoType(loc.getChunk());
         if (chunk != null) {
             switch(chunk.getClass().getSimpleName().toLowerCase()){
-                case "playerchunk": return "Private";
+                case "playerchunk": return "Spawn";
                 case "claimablechunk": return "Claimable";
                 default: break;
             }
