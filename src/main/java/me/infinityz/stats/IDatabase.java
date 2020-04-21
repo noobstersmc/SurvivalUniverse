@@ -19,5 +19,7 @@ public interface IDatabase {
     void updateStats(UUID uuid) throws Exception;
     void logEvent(BlockBreakEvent brk, Material type) throws Exception;
     void logEvent(BlockPlaceEvent place) throws Exception;
+
+    void disconnect();
     
 }

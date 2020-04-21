@@ -332,33 +332,7 @@ public class GlobalListeners implements Listener {
                 ChatColor.GREEN + "World: " + ChatColor.WHITE + e.getPlayer().getWorld().getName());
 
     }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent e) {
-        Bukkit.getScheduler().runTaskLaterAsynchronously(instance, () -> {
-            Bukkit.getOnlinePlayers().parallelStream().forEach(all -> {
-                final FastBoard fb = instance.scoreboardManager.scoreboardHashMap.get(all.getUniqueId());
-                if (fb == null)
-                    return;
-                fb.updateLine(5, ChatColor.GREEN + "Players: " + ChatColor.WHITE + Bukkit.getOnlinePlayers().size());
-            });
-
-        }, 20L);
-    }
-
-    @EventHandler
-    public void onLeave(PlayerQuitEvent e) {
-        Bukkit.getScheduler().runTaskLaterAsynchronously(instance, () -> {
-            Bukkit.getOnlinePlayers().parallelStream().forEach(all -> {
-                final FastBoard fb = instance.scoreboardManager.scoreboardHashMap.get(all.getUniqueId());
-                if (fb == null)
-                    return;
-                fb.updateLine(5, ChatColor.GREEN + "Players: " + ChatColor.WHITE + Bukkit.getOnlinePlayers().size());
-            });
-
-        }, 20L);
-    }
-
+    
     /* Handles the city change event */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {

@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import me.infinityz.chunks.ChunkManager;
 import me.infinityz.chunks.types.ClaimableChunk;
@@ -23,11 +29,12 @@ import me.infinityz.players.PlayerManager;
 import me.infinityz.scoreboard.ScoreboardManager;
 import me.infinityz.stats.DatabaseManager;
 import me.infinityz.utils.FileConfig;
+import net.md_5.bungee.api.ChatColor;
 
 /**
  * SurvivalUniverse
  */
-public class SurvivalUniverse extends JavaPlugin {
+public class SurvivalUniverse extends JavaPlugin implements PluginMessageListener{
     public static SurvivalUniverse instance;
 
     public ScoreboardManager scoreboardManager;
@@ -38,6 +45,7 @@ public class SurvivalUniverse extends JavaPlugin {
     public FileConfig claimableChunkFile;
     public FileConfig cityFile;
     public DatabaseManager databaseManager;
+    int bungee_players = 0;
 
     @Override
     public void onEnable() {
@@ -73,10 +81,19 @@ public class SurvivalUniverse extends JavaPlugin {
         loadCities();
         loadClaimable();
         this.databaseManager = new DatabaseManager(this);
+        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, ()->{
+            getOnline();
+            scoreboardManager.scoreboardHashMap.values().stream().forEach(it->{
+                it.updateLine(5, ChatColor.GREEN + "Players: " + ChatColor.WHITE + bungee_players);
+            });
+        }, 20, 20);
     }
 
     @Override
     public void onDisable() {
+        this.databaseManager.database.disconnect();
 
     }
 
@@ -91,6 +108,28 @@ public class SurvivalUniverse extends JavaPlugin {
                 PlayerChunk chunk = new PlayerChunk(uuid, world, x, z);
                 chunkManager.ownedChunksMap.put(chunk, uuid);
             });
+        });
+    }
+    
+    @Override
+    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+      if (!channel.equals("BungeeCord")) {
+        return;
+      }
+      ByteArrayDataInput in = ByteStreams.newDataInput(message);
+      String subchannel = in.readUTF();
+      if (subchannel.equalsIgnoreCase("PlayerCount")) {
+          in.readUTF();
+          bungee_players = in.readInt();
+      }
+      
+    }
+    void getOnline(){        
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF("PlayerCount");
+        out.writeUTF("ALL");
+        Bukkit.getOnlinePlayers().stream().findFirst().ifPresent(it->{
+            it.sendPluginMessage(this, "BungeeCord", out.toByteArray());
         });
     }
 

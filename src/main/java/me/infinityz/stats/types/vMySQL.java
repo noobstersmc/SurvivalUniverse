@@ -38,6 +38,11 @@ public class vMySQL implements IDatabase {
     }
 
     @Override
+    public void disconnect(){
+        mysql.disconnect();
+    }
+
+    @Override
     public void loadPlayer(UUID uuid) throws Exception {
         try {
             if (!isInDatabase(uuid)) {
