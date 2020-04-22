@@ -35,7 +35,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
     SurvivalUniverse instance;
     String[] helpArray = { "check", "delete", "own", "list", "claimlist", "claimadd", "claimremove" };
     String[] helperHelpArray = { "add", "remove" };
-    String[] allyHelpArray = { "add", "remove", "list" };
+    String[] allyHelpArray = { "add", "remove", "list", "test"};
 
     public ChunkCommands(SurvivalUniverse instance) {
         this.instance = instance;
