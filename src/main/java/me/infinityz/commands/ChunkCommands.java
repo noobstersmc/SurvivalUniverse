@@ -177,9 +177,9 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     }
                     /* Only allow claim if has played 1h+ */
                     final int played_time_seconds = (player.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20);
-                    if ((played_time_seconds / 3600) < 1) {
+                    if ((played_time_seconds / 600) < 1) {
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                String.format("&cYou have to have played at least one hour to claim a chunk! (%.2f)h",
+                                String.format("&cYou haven't played at least 10 minutes in this world to claim a chunk! (%.2f)",
                                         played_time_seconds / 3600.00D)));
                         return true;
                     }
