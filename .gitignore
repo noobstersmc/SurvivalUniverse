@@ -4,6 +4,10 @@
 # Log file
 *.log
 
+#Settings
+.settings/
+.DS_Store
+
 # BlueJ files
 *.ctxt
 
