@@ -33,14 +33,8 @@ public class ChunkListener implements Listener {
 
     @EventHandler
     public void onShears(PlayerShearEntityEvent e) {
-        // Cancel shears if not ally
-        final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
-        if (chunk == null)
-            return;
-        final SurvivalPlayer player = instance.playerManager.getPlayerFromId(e.getPlayer().getUniqueId());
-        if (chunk.isOwner(e.getPlayer()) || (player != null && player.isAlly(e.getPlayer().getUniqueId())))
-            return;
-        e.setCancelled(true);
+        e.setCancelled(instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk())
+                .shouldInteract(e.getPlayer().getUniqueId()));
     }
 
     @EventHandler
@@ -124,7 +118,8 @@ public class ChunkListener implements Listener {
         if (e.getSpawnReason() == SpawnReason.EGG || e.getSpawnReason() == SpawnReason.BREEDING
                 || e.getSpawnReason() == SpawnReason.SPAWNER || e.getSpawnReason() == SpawnReason.SPAWNER_EGG
                 || e.getSpawnReason() == SpawnReason.CURED || e.getSpawnReason() == SpawnReason.INFECTION
-                || e.getSpawnReason() == SpawnReason.DISPENSE_EGG || e.getSpawnReason() == SpawnReason.SHEARED || e.getSpawnReason() == SpawnReason.LIGHTNING || e.getSpawnReason() == SpawnReason.BEEHIVE)
+                || e.getSpawnReason() == SpawnReason.DISPENSE_EGG || e.getSpawnReason() == SpawnReason.SHEARED
+                || e.getSpawnReason() == SpawnReason.LIGHTNING || e.getSpawnReason() == SpawnReason.BEEHIVE)
             return;
         e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
     }

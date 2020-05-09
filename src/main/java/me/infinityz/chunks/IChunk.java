@@ -4,8 +4,10 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 import me.infinityz.SurvivalUniverse;
+import me.infinityz.cities.City;
 
 /**
  * IChunk
@@ -37,15 +39,19 @@ public class IChunk {
         return shouldBuild(uuid);
     }
 
+    /* Added some null-safety to these methods. */
     public boolean isAdmin(UUID player) {
-        return SurvivalUniverse.instance.cityManager.isInCity(Bukkit.getPlayer(player).getLocation()).isOwner(player);
+        final City city = SurvivalUniverse.instance.cityManager.isInCity(Bukkit.getPlayer(player).getLocation());
+        return city != null && city.isOwner(player);
     }
 
     public boolean isHelper(UUID player) {
-        return SurvivalUniverse.instance.cityManager.isInCity(Bukkit.getPlayer(player).getLocation()).isHelper(player);
+        final City city = SurvivalUniverse.instance.cityManager.isInCity(Bukkit.getPlayer(player).getLocation());
+        return city != null && city.isHelper(player);
     }
 
     public boolean isVIP(UUID player) {
-        return Bukkit.getPlayer(player).hasPermission("vip.chunk");
+        final Player p = Bukkit.getPlayer(player);
+        return p != null && p.hasPermission("vip.chunk");
     }
 }
