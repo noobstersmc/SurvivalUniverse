@@ -14,9 +14,8 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
 import me.infinityz.SurvivalUniverse;
-import me.infinityz.chunks.types.PlayerChunk;
+import me.infinityz.chunks.IChunk;
 import me.infinityz.cities.City;
-import me.infinityz.players.SurvivalPlayer;
 
 /**
  * ChunkListener
@@ -28,12 +27,13 @@ public class CityListener implements Listener {
         this.instance = instance;
     }
 
+    /* Update: Now only Smith entites are invincible */
     @EventHandler
     public void onDamage(EntityDamageEvent e) {
         if (e.getCause() == DamageCause.ENTITY_ATTACK || e.getEntity().getType() == EntityType.PLAYER
                 || e.getEntity().getType() == EntityType.ENDER_PEARL)
             return;
-        if (e.getEntity().getCustomName() != null) {
+        if (e.getEntity().getCustomName() != null && e.getEntity().getName().equals("Smith")) {
             e.setCancelled(inCity(e.getEntity().getLocation()));
         }
     }
@@ -43,7 +43,7 @@ public class CityListener implements Listener {
         if (e.getEntity().getType() == EntityType.PLAYER)
             return;
 
-        if (e.getEntity().getCustomName() != null) {
+        if (e.getEntity().getCustomName() != null && e.getEntity().getName().equals("Smith")) {
             e.setCancelled(
                     e.getDamager() instanceof Player ? inCity(e.getEntity().getLocation(), (Player) e.getDamager())
                             : inCity(e.getEntity().getLocation()));
@@ -55,26 +55,13 @@ public class CityListener implements Listener {
         if (e.getPlayer() == null)
             return;
         final Player player = e.getPlayer();
-        final City city = instance.cityManager.isInCity(player.getLocation());
-        if (city == null)
-            return;
-        if (city.isOwner(player))
-            return;
-        if (city.isHelper(player)) {
-            final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(player.getChunk());
-            if (chunk == null)
-                return;
-            if (chunk.isOwner(player))
-                return;
-            SurvivalPlayer su = instance.playerManager.getPlayerFromId(chunk.owner);
-            if (su != null) {
-                if (su.isAlly(player.getUniqueId())) {
-                    e.setCancelled(false);
-                    return;
-                }
-            }
-            player.sendMessage("You're a helper and can't edit " + chunk.owner_last_known_name + "'s chunk.");
-            e.setCancelled(true);
+        final IChunk ch = instance.chunkManager.findIChunkfromChunk(player.getChunk());
+        if (ch != null) {
+            e.setCancelled(!ch.shouldBuild(player.getUniqueId(), e.getBlock().getLocation()));
+        } else {
+            final City city = instance.cityManager.isInCity(e.getBlock().getLocation());
+            if (city != null)
+                e.setCancelled(!(city.isHelper(player) || city.isOwner(player)));
         }
     }
 
@@ -83,26 +70,13 @@ public class CityListener implements Listener {
         if (e.getPlayer() == null)
             return;
         final Player player = e.getPlayer();
-        final City city = instance.cityManager.isInCity(player.getLocation());
-        if (city == null)
-            return;
-        if (city.isOwner(player))
-            return;
-        if (city.isHelper(player)) {
-            final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(player.getChunk());
-            if (chunk == null)
-                return;
-            if (chunk.isOwner(player))
-                return;
-            SurvivalPlayer su = instance.playerManager.getPlayerFromId(chunk.owner);
-            if (su != null) {
-                if (su.isAlly(player.getUniqueId())) {
-                    e.setCancelled(false);
-                    return;
-                }
-            }
-            player.sendMessage("You're a helper and can't edit " + chunk.owner_last_known_name + "'s chunk.");
-            e.setCancelled(true);
+        final IChunk ch = instance.chunkManager.findIChunkfromChunk(player.getChunk());
+        if (ch != null) {
+            e.setCancelled(!ch.shouldBuild(player.getUniqueId(), e.getBlock().getLocation()));
+        } else {
+            final City city = instance.cityManager.isInCity(e.getBlock().getLocation());
+            if (city != null)
+                e.setCancelled(!(city.isHelper(player) || city.isOwner(player)));
         }
     }
 

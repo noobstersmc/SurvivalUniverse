@@ -47,6 +47,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import me.infinityz.SurvivalUniverse;
 import me.infinityz.chunks.IChunk;
+import me.infinityz.chunks.Tristate;
 import me.infinityz.chunks.types.PlayerChunk;
 import me.infinityz.cities.City;
 import me.infinityz.cities.CityChangeEvent;
@@ -62,6 +63,13 @@ public class GlobalListeners implements Listener {
 
     public GlobalListeners(SurvivalUniverse instance) {
         this.instance = instance;
+    }
+
+    public static Player getPlayerDamagerEntityEvent(EntityDamageByEntityEvent e) {
+        return e.getDamager() instanceof Player ? (Player) e.getDamager()
+                : (e.getDamager() instanceof Projectile ? (((Projectile) e.getDamager()).getShooter() instanceof Player
+                        ? (Player) ((Projectile) e.getDamager()).getShooter()
+                        : null) : null);
     }
 
     @EventHandler
@@ -92,12 +100,10 @@ public class GlobalListeners implements Listener {
                 }
             }
             default:
-                for (Entity entity : e.getEntity().getPassengers()) {
-                    if (entity instanceof Player) {
-                        e.setCancelled(maybeInCityOrChunk(e.getEntity().getLocation()));
-                        break;
-                    }
-                }
+                // Rideable entity is unbreakable when they have a player as an entity
+                // Update: Changed code from legacy for loop to lambda.
+                e.setCancelled(e.getEntity().getPassengers().stream().filter(it -> (it instanceof Player)).findFirst()
+                        .isPresent());
                 break;
         }
 
@@ -202,16 +208,20 @@ public class GlobalListeners implements Listener {
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
         if (Bukkit.getOnlinePlayers().size() >= 50 && !e.getPlayer().hasPermission("reserved.slot"))
-            /**&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U**/
-            /**&cMantenimiento\n &fDiscord discord.gg/6PzHNyt\n&6SOLO VIP**/ 
+            /**
+             * &fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd
+             * don`t forget to follow us on Twitter @Survival_U
+             **/
+            /** &cMantenimiento\n &fDiscord discord.gg/6PzHNyt\n&6SOLO VIP **/
             e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.translateAlternateColorCodes('&',
                     "&fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd don`t forget to follow us on Twitter @Survival_U"));
     }
 
     @EventHandler
-    public void onPing(ServerListPingEvent e){
+    public void onPing(ServerListPingEvent e) {
         e.setMaxPlayers(30);
     }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void interactEvent(PlayerInteractEvent e) {
         if (e.getClickedBlock() == null || e.getClickedBlock().getType() == Material.AIR)
@@ -242,9 +252,19 @@ public class GlobalListeners implements Listener {
                     return;
                 } // Maybe delete this?
                 e.setUseItemInHand(Result.DEFAULT);
-                e.setUseInteractedBlock(
-                        maybeInCityOrChunk(e.getClickedBlock().getLocation(), e.getPlayer(), true) ? Result.DENY
-                                : Result.ALLOW);
+                final IChunk chunk = instance.chunkManager.findIChunkfromChunk(e.getClickedBlock().getChunk());
+                if (chunk != null) {
+                    e.setUseInteractedBlock(
+                            chunk.shouldInteract(e.getPlayer().getUniqueId(), e.getClickedBlock().getLocation())
+                                    ? Result.ALLOW
+                                    : Result.DENY);
+                } else {
+                    final City city = instance.cityManager.isInCity(e.getClickedBlock().getLocation());
+                    e.setUseInteractedBlock(
+                            city.isHelper(e.getPlayer()) || city.isOwner(e.getPlayer()) ? Result.ALLOW : Result.DENY);
+                }
+                // TODO: Write a method to allow placing against block that's not yours.
+                // if(e.getAction() == Action.RIGHT_CLICK_BLOCK);
                 return;
         }
     }
@@ -260,6 +280,8 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onCityChanged(CityChangeEvent e) {
+        if (e.to == e.from)
+            return;
         if (e.from != null) {
             e.player.sendMessage(ChatColor.RED + "You left " + e.from.cityName + ".");
         }
@@ -296,10 +318,13 @@ public class GlobalListeners implements Listener {
     String getZone(Location loc) {
         final IChunk chunk = instance.chunkManager.getChunkNoType(loc.getChunk());
         if (chunk != null) {
-            switch(chunk.getClass().getSimpleName().toLowerCase()){
-                case "playerchunk": return "Private";
-                case "claimablechunk": return "Claimable";
-                default: break;
+            switch (chunk.getClass().getSimpleName().toLowerCase()) {
+                case "playerchunk":
+                    return "Private";
+                case "claimablechunk":
+                    return "Claimable";
+                default:
+                    break;
             }
             return chunk.getClass().getSimpleName();
         }
@@ -333,7 +358,7 @@ public class GlobalListeners implements Listener {
                 ChatColor.GREEN + "World: " + ChatColor.WHITE + e.getPlayer().getWorld().getName());
 
     }
-    
+
     /* Handles the city change event */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
@@ -402,41 +427,74 @@ public class GlobalListeners implements Listener {
     public void onDamage(EntityDamageByEntityEvent e) {
         if (e.getEntity().getType() != EntityType.PLAYER)
             return;
-        Player damager;
-        /*
-         * Perform the checks to know if the damager was a projectile and if the shooter
-         * of that projectile was a player
-         */
-        if (e.getDamager().getType() != EntityType.PLAYER) {
-            if (!(e.getDamager() instanceof Projectile))
-                return;
-            final Projectile projectile = (Projectile) e.getDamager();
-            if (projectile.getShooter() != null && !(projectile.getShooter() instanceof Player))
-                return;
-            damager = (Player) projectile.getShooter();
-            /* Issue #2 - Enderpearl fix */
-            if (damager.getUniqueId().getMostSignificantBits() == e.getEntity().getUniqueId().getMostSignificantBits())
-                return; // End here
-        } else {
-            damager = (Player) e.getDamager();
-        }
-        final SurvivalPlayer survivalDamagerPlayer = instance.playerManager.survivalPlayerMap
-                .get(damager.getUniqueId());
-        if (!survivalDamagerPlayer.pvp) {
-            damager.sendMessage(ChatColor.RED + "Your PVP is disabled!");
-            e.setCancelled(true);
-            return;
-        }
-        final Player damaged = (Player) e.getEntity();
-        final SurvivalPlayer survivalDamagedPlayer = instance.playerManager.survivalPlayerMap
-                .get(damaged.getUniqueId());
-        if (!survivalDamagedPlayer.pvp) {
-            e.setCancelled(true);
-            damager.sendMessage(ChatColor.RED + damaged.getName() + " has not enabled their pvp!");
-            return;
+
+        final Player dmgr = getPlayerDamagerEntityEvent(e);
+        if (dmgr != null) {
+            switch (instance.globalPvp) {
+                case FALSE:
+                    e.setCancelled(true);
+                    break;
+                case TRUE:
+                    e.setCancelled(false);
+                    break;
+                case UNKNOWN:
+
+                    final SurvivalPlayer survivalDamagerPlayer = instance.playerManager.survivalPlayerMap
+                            .get(dmgr.getUniqueId()),
+                            survivalPlayer = instance.playerManager.survivalPlayerMap.get(e.getEntity().getUniqueId());
+                    /* Check if they are in pvp or safe chunks */
+                    if (dmgr.getChunk() == e.getEntity().getChunk()) {
+                        final IChunk c = instance.chunkManager.findIChunkfromChunk(dmgr.getChunk());
+                        if (c.pvpMode == Tristate.TRUE) {
+                            // Pvp chunk implied
+                            e.setCancelled(false);
+                            return;
+                        } else if (c.pvpMode == Tristate.FALSE) {
+                            // Safe chunk implied
+                            e.setCancelled(true);
+                            return;
+                        }
+                    } else {
+                        final IChunk damagerChunk = instance.chunkManager.findIChunkfromChunk(dmgr.getChunk()),
+                                entityChunk = instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+                        if (damagerChunk != null) {
+                            if (entityChunk != null) {
+                                if (damagerChunk.pvpMode == Tristate.FALSE || entityChunk.pvpMode == Tristate.FALSE) {
+                                    e.setCancelled(true);
+                                    return;
+                                }
+
+                            } else if ((survivalPlayer != null && !survivalPlayer.pvp)
+                                    || damagerChunk.pvpMode == Tristate.FALSE) {
+                                e.setCancelled(true);
+                                return;
+                            }
+                        } else {
+                            if (survivalDamagerPlayer != null && survivalDamagerPlayer.pvp) {
+                                if (entityChunk != null) {
+                                    if (entityChunk.pvpMode == Tristate.FALSE || !survivalDamagerPlayer.pvp) {
+                                        e.setCancelled(true);
+                                        return;
+                                    }
+
+                                } else if (entityChunk == null && (survivalPlayer != null && !survivalPlayer.pvp)) {
+                                    e.setCancelled(true);
+                                    return;
+                                }
+
+                            } else {
+                                e.setCancelled(true);
+                                return;
+                            }
+
+                        }
+                    }
+                    break;
+            }
         }
     }
 
+    // TODO: Allow players to use buckets in pvp chunks
     /* Issue #3 - Water and Lava buckets - Start */
     @EventHandler
     public void onBucketEmpty(PlayerBucketEmptyEvent e) {

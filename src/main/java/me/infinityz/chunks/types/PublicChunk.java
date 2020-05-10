@@ -2,6 +2,7 @@ package me.infinityz.chunks.types;
 
 import java.util.UUID;
 
+import org.bukkit.Location;
 import org.bukkit.World;
 
 import me.infinityz.chunks.HirarchyAllowance;
@@ -17,6 +18,11 @@ public class PublicChunk extends IChunk {
 
     @Override
     public boolean shouldInteract(UUID uuid) {
+        return true;
+    }
+
+    @Override
+    public boolean shouldInteract(UUID uuid, Location loc) {
         return true;
     }
 

@@ -3,6 +3,7 @@ package me.infinityz.chunks;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -35,9 +36,30 @@ public class IChunk {
         return isAdmin(uuid) || isHelper(uuid);
     }
 
+    public boolean shouldBuild(UUID uuid, Location at) {
+        return isAdmin(uuid, at) || isHelper(uuid, at);
+    }
+
     public boolean shouldInteract(UUID uuid) {
         return shouldBuild(uuid);
     }
+
+    public boolean shouldInteract(UUID uuid, Location at) {
+        return shouldBuild(uuid, at);
+    }
+
+    public boolean shouldDamageEntity(UUID uuid) {
+        return true;
+    }
+
+    public boolean shouldDamageEntity(UUID uuid, Location at) {
+        return true;
+    }
+
+    /* Private chunk, solo admin ally y owner pueden pegar a entidades */
+    /** VIp solo vip, admin y helper? */
+    /** Public y safe todos con todo menos excepciones (armor stand) */
+    /** Armor stand, painting, item frames, */
 
     /* Added some null-safety to these methods. */
     public boolean isAdmin(UUID player) {
@@ -45,8 +67,18 @@ public class IChunk {
         return city != null && city.isOwner(player);
     }
 
+    public boolean isAdmin(UUID player, Location at) {
+        final City city = SurvivalUniverse.instance.cityManager.isInCity(at);
+        return city != null && city.isOwner(player);
+    }
+
     public boolean isHelper(UUID player) {
         final City city = SurvivalUniverse.instance.cityManager.isInCity(Bukkit.getPlayer(player).getLocation());
+        return city != null && city.isHelper(player);
+    }
+
+    public boolean isHelper(UUID player, Location at) {
+        final City city = SurvivalUniverse.instance.cityManager.isInCity(at);
         return city != null && city.isHelper(player);
     }
 

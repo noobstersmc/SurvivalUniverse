@@ -3,6 +3,7 @@ package me.infinityz.chunks.types;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -44,8 +45,28 @@ public class PlayerChunk extends IChunk {
     }
 
     @Override
+    public boolean shouldBuild(UUID uuid, Location loc) {
+        return isOwner(uuid) || isAlly(uuid) || isAdmin(uuid, loc);
+    }
+
+    @Override
     public boolean shouldInteract(UUID uuid) {
         return shouldBuild(uuid);
+    }
+
+    @Override
+    public boolean shouldInteract(UUID uuid, Location loc) {
+        return shouldBuild(uuid, loc);
+    }
+
+    @Override
+    public boolean shouldDamageEntity(UUID uuid) {
+        return shouldBuild(uuid);
+    }
+
+    @Override
+    public boolean shouldDamageEntity(UUID uuid, Location loc) {
+        return shouldBuild(uuid, loc);
     }
 
     public boolean isAlly(UUID player) {

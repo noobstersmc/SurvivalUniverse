@@ -1,10 +1,8 @@
 package me.infinityz.listeners;
 
-import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockExplodeEvent;
@@ -17,8 +15,9 @@ import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 
 import me.infinityz.SurvivalUniverse;
+import me.infinityz.chunks.IChunk;
 import me.infinityz.chunks.types.PlayerChunk;
-import me.infinityz.players.SurvivalPlayer;
+import me.infinityz.chunks.types.SafeChunk;
 
 /**
  * ChunkListener
@@ -39,72 +38,52 @@ public class ChunkListener implements Listener {
 
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent e) {
+        // TODO: Investigate, weather or not zombies can damage villagers to turn them
+        // into zombie vigs.
         if (e.isCancelled())
             return;
         if (e.getEntity() instanceof Monster || e.getEntity() instanceof Player) /* Issue #3 - Player Damage */
             return;
-        PlayerChunk c = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
-        if (c != null) {
-            if (e.getDamager() instanceof Player) {
-                Player pl = (Player) e.getDamager();
-                SurvivalPlayer su = instance.playerManager.getPlayerFromId(c.owner);
-                if (c.isOwner(pl) || (su != null && su.isAlly(pl.getUniqueId()))) {
-                    e.setCancelled(false);
-                    return;
-                }
-                e.setCancelled(true);
-                return;
+        final IChunk chunk = instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+        if (chunk != null) {
+            final Player p = GlobalListeners.getPlayerDamagerEntityEvent(e);
+            if (p != null) {
+                e.setCancelled(!chunk.shouldDamageEntity(p.getUniqueId()));
             }
-            if (e.getDamager() instanceof Projectile) {
-                Projectile prj = (Projectile) e.getDamager();
-                if (prj.getShooter() instanceof Player) {
-                    Player pl = (Player) prj.getShooter();
-                    SurvivalPlayer su = instance.playerManager.getPlayerFromId(c.owner);
-                    if (c.isOwner(pl) || (su != null && su.isAlly(pl.getUniqueId()))) {
-                        e.setCancelled(false);
-                        return;
-                    }
-                    e.setCancelled(true);
-                    return;
-                }
-                e.setCancelled(true);
-                return;
-
-            }
-            e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onPortal(PortalCreateEvent e) {
-        e.setCancelled(
-                (PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getBlocks().get(0).getChunk()) != null);
+        final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getBlocks().get(0).getChunk());
+        e.setCancelled(c != null && c.getClass().isAssignableFrom(PlayerChunk.class));
     }
 
     @EventHandler
     public void onPlaceTNT(BlockPlaceEvent e) {
-        if (e.getBlock().getType() == Material.TNT)
-            e.setCancelled(
-                    (PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getBlockPlaced().getChunk()) != null);
+        final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getBlockPlaced().getChunk());
+        e.setCancelled(c != null && (c.getClass().isAssignableFrom(PlayerChunk.class)));
     }
 
     @EventHandler
     public void onExplode(BlockExplodeEvent e) {
-        e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getBlock().getChunk()) != null);
+        final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getBlock().getChunk());
+        e.setCancelled(c != null && (c.getClass().isAssignableFrom(PlayerChunk.class)
+                || c.getClass().isAssignableFrom(SafeChunk.class)));
     }
 
     @EventHandler
     public void onExplode(EntityExplodeEvent e) {
         if (e.getEntity().getType() != EntityType.PRIMED_TNT)
             return;
-        e.blockList()
-                .removeIf(block -> (PlayerChunk) instance.chunkManager.findIChunkfromChunk(block.getChunk()) != null);
+        e.blockList().removeIf(block -> instance.chunkManager.findIChunkfromChunk(block.getChunk()) != null);
     }/* Issue #3 - TNT In city fixed */
 
     @EventHandler
     public void onWither(CreatureSpawnEvent e) {
         if (e.getEntityType() == EntityType.WITHER || e.getEntityType() == EntityType.ENDER_CRYSTAL) {
-            e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
+            final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+            e.setCancelled(c != null && c.getClass().isAssignableFrom(PlayerChunk.class));
         }
     }
 
@@ -121,7 +100,9 @@ public class ChunkListener implements Listener {
                 || e.getSpawnReason() == SpawnReason.DISPENSE_EGG || e.getSpawnReason() == SpawnReason.SHEARED
                 || e.getSpawnReason() == SpawnReason.LIGHTNING || e.getSpawnReason() == SpawnReason.BEEHIVE)
             return;
-        e.setCancelled((PlayerChunk) instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk()) != null);
+
+        final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+        e.setCancelled(c != null && c.getClass().isAssignableFrom(PlayerChunk.class));
     }
 
 }

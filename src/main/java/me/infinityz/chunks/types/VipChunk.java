@@ -2,6 +2,7 @@ package me.infinityz.chunks.types;
 
 import java.util.UUID;
 
+import org.bukkit.Location;
 import org.bukkit.World;
 
 import me.infinityz.chunks.HirarchyAllowance;
@@ -18,6 +19,21 @@ public class VipChunk extends IChunk {
     @Override
     public boolean shouldInteract(UUID uuid) {
         return shouldBuild(uuid) || isVIP(uuid);
+    }
+
+    @Override
+    public boolean shouldInteract(UUID uuid, Location loc) {
+        return shouldBuild(uuid, loc) || isVIP(uuid);
+    }
+
+    @Override
+    public boolean shouldDamageEntity(UUID uuid) {
+        return isVIP(uuid);
+    }
+
+    @Override
+    public boolean shouldDamageEntity(UUID uuid, Location loc) {
+        return isVIP(uuid);
     }
 
 }

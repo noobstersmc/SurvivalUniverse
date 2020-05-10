@@ -14,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import me.infinityz.chunks.ChunkManager;
+import me.infinityz.chunks.Tristate;
 import me.infinityz.chunks.types.ClaimableChunk;
 import me.infinityz.chunks.types.PlayerChunk;
 import me.infinityz.cities.City;
@@ -34,7 +35,7 @@ import net.md_5.bungee.api.ChatColor;
 /**
  * SurvivalUniverse
  */
-public class SurvivalUniverse extends JavaPlugin implements PluginMessageListener{
+public class SurvivalUniverse extends JavaPlugin implements PluginMessageListener {
     public static SurvivalUniverse instance;
 
     public ScoreboardManager scoreboardManager;
@@ -45,6 +46,7 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
     public FileConfig claimableChunkFile;
     public FileConfig cityFile;
     public DatabaseManager databaseManager;
+    public Tristate globalPvp;
     int bungee_players = 0;
 
     @Override
@@ -65,6 +67,8 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
         getCommand("admin").setExecutor(ch);
         getCommand("helper").setExecutor(ch);
         getCommand("ally").setExecutor(ch);
+        // TODO: Obtain fro flatfile config.
+        this.globalPvp = Tristate.UNKNOWN;
 
         final TeleportCommands teleport = new TeleportCommands(this);
         getCommand("home").setExecutor(teleport);
@@ -83,9 +87,9 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
         this.databaseManager = new DatabaseManager(this);
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, ()->{
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             getOnline();
-            scoreboardManager.scoreboardHashMap.values().stream().forEach(it->{
+            scoreboardManager.scoreboardHashMap.values().stream().forEach(it -> {
                 it.updateLine(5, ChatColor.GREEN + "Players: " + ChatColor.WHITE + bungee_players);
             });
         }, 20, 20);
@@ -110,25 +114,26 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
             });
         });
     }
-    
+
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-      if (!channel.equals("BungeeCord")) {
-        return;
-      }
-      ByteArrayDataInput in = ByteStreams.newDataInput(message);
-      String subchannel = in.readUTF();
-      if (subchannel.equalsIgnoreCase("PlayerCount")) {
-          in.readUTF();
-          bungee_players = in.readInt();
-      }
-      
+        if (!channel.equals("BungeeCord")) {
+            return;
+        }
+        ByteArrayDataInput in = ByteStreams.newDataInput(message);
+        String subchannel = in.readUTF();
+        if (subchannel.equalsIgnoreCase("PlayerCount")) {
+            in.readUTF();
+            bungee_players = in.readInt();
+        }
+
     }
-    void getOnline(){        
+
+    void getOnline() {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("PlayerCount");
         out.writeUTF("ALL");
-        Bukkit.getOnlinePlayers().stream().findFirst().ifPresent(it->{
+        Bukkit.getOnlinePlayers().stream().findFirst().ifPresent(it -> {
             it.sendPluginMessage(this, "BungeeCord", out.toByteArray());
         });
     }
