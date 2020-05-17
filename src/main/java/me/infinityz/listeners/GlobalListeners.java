@@ -61,6 +61,11 @@ import net.md_5.bungee.api.ChatColor;
 public class GlobalListeners implements Listener {
     SurvivalUniverse instance;
 
+    /*
+     * TODO: Detect when player dies in PVP Chunk and process whether or not they
+     * should drop their loot and spawn them in the nearest safe chunk.
+     */
+
     public GlobalListeners(SurvivalUniverse instance) {
         this.instance = instance;
     }
@@ -315,6 +320,10 @@ public class GlobalListeners implements Listener {
 
     }
 
+    String capitalizeFirst(String str) {
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
     String getZone(Location loc) {
         final IChunk chunk = instance.chunkManager.getChunkNoType(loc.getChunk());
         if (chunk != null) {
@@ -326,7 +335,7 @@ public class GlobalListeners implements Listener {
                 default:
                     break;
             }
-            return chunk.getClass().getSimpleName();
+            return capitalizeFirst(getClass().getSimpleName().replace("Chunk", ""));
         }
         final City ci = instance.cityManager.isInCity(loc);
         if (ci != null)

@@ -42,9 +42,7 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
     public PlayerManager playerManager;
     public ChunkManager chunkManager;
     public CityManager cityManager;
-    public FileConfig chunksFile;
-    public FileConfig claimableChunkFile;
-    public FileConfig cityFile;
+    public FileConfig chunksFile, claimableChunkFile, cityFile, config;
     public DatabaseManager databaseManager;
     public Tristate globalPvp;
     int bungee_players = 0;
@@ -59,6 +57,7 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
         this.claimableChunkFile = new FileConfig(this, "claimable_chunks.yml", "claimable_chunks.yml");
         this.chunksFile = new FileConfig(this, "chunks.yml", "chunks.yml");
         this.cityFile = new FileConfig(this, "city.yml", "city.yml");
+        this.config = new FileConfig(this, "config.yml", "config.yml");
         getCommand("pvp").setExecutor(new PvPCommand(this));
         final ChunkCommands ch = new ChunkCommands(this);
         getCommand("chunk").setExecutor(ch);
@@ -67,8 +66,7 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
         getCommand("admin").setExecutor(ch);
         getCommand("helper").setExecutor(ch);
         getCommand("ally").setExecutor(ch);
-        // TODO: Obtain fro flatfile config.
-        this.globalPvp = Tristate.UNKNOWN;
+        this.globalPvp = getTristeState(config.get("global-pvp").toString());
 
         final TeleportCommands teleport = new TeleportCommands(this);
         getCommand("home").setExecutor(teleport);
@@ -85,14 +83,30 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
         loadCities();
         loadClaimable();
         this.databaseManager = new DatabaseManager(this);
-        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        boolean c = config.getBoolean("bungee-online-players");
+        if (c) {
+            this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+            this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        }
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
-            getOnline();
+            if (c)
+                getOnline();
             scoreboardManager.scoreboardHashMap.values().stream().forEach(it -> {
-                it.updateLine(5, ChatColor.GREEN + "Players: " + ChatColor.WHITE + bungee_players);
+                it.updateLine(5, ChatColor.GREEN + "Players: " + ChatColor.WHITE
+                        + (c ? bungee_players : Bukkit.getOnlinePlayers().size()));
             });
         }, 20, 20);
+    }
+
+    Tristate getTristeState(String str) {
+        switch (str.toLowerCase()) {
+            case "true":
+                return Tristate.TRUE;
+            case "false":
+                return Tristate.FALSE;
+            default:
+                return Tristate.UNKNOWN;
+        }
     }
 
     @Override
