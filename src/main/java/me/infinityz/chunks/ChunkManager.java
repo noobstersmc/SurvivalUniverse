@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,11 +26,13 @@ public class ChunkManager {
     SurvivalUniverse instance;
     public Map<IChunk, UUID> ownedChunksMap;
     public Map<ClaimableChunk, Integer> claimableChunks;
+    public Map<IChunk, Integer> chunkMap;
 
     public ChunkManager(SurvivalUniverse instance) {
         this.instance = instance;
         this.ownedChunksMap = new HashMap<>();
         this.claimableChunks = new HashMap<>();
+        this.chunkMap = new HashMap<>();
     }
 
     public IChunk findIChunkfromChunk(Chunk chunk) {
@@ -45,6 +48,7 @@ public class ChunkManager {
     public boolean addClaimableChunk(ClaimableChunk cu) {
         if (!verifyDups(cu)) {
             claimableChunks.put(cu, 0);
+            chunkMap.put(cu, 0);
             return true;
         }
         return false;
@@ -53,6 +57,7 @@ public class ChunkManager {
     public boolean addClaimableChunk(ClaimableChunk cu, boolean addToFile) {
         if (!verifyDups(cu)) {
             claimableChunks.put(cu, 0);
+            chunkMap.put(cu, 0);
             final List<String> st = instance.claimableChunkFile.getStringList("claimable-chunk-list");
             st.add(cu.chunkX + " " + cu.chunkZ + " " + cu.chunkWorld.getName());
             instance.claimableChunkFile.set("claimable-chunk-list", st);
@@ -107,13 +112,80 @@ public class ChunkManager {
         return claimableChunk;
     }
 
+    public <T> T getChunkFromLocationByType(Class<T> clazz, Location loc, Set<IChunk> set) {
+        final List<IChunk> chunks = set.parallelStream().filter(it -> it.getClass() == clazz)
+                .collect(Collectors.toCollection(ArrayList::new));
+        final IChunk chunk = chunks.stream().filter(it -> it.equals(loc.getChunk())).findFirst().orElse(null);
+        return chunk != null ? clazz.cast(chunk) : null;
+    }
+
+    public <T> T getChunkFromLocationByType(Class<T> clazz, Location loc) {
+        final List<IChunk> chunks = chunkMap.keySet().parallelStream().filter(it -> it.getClass() == clazz)
+                .collect(Collectors.toCollection(ArrayList::new));
+        final IChunk chunk = chunks.stream().filter(it -> it.equals(loc.getChunk())).findFirst().orElse(null);
+        return chunk != null ? clazz.cast(chunk) : null;
+    }
+
+    public IChunk getChunkFromLoc(Location loc) {
+        return chunkMap.keySet().stream().filter(it -> it.equals(loc.getChunk())).findFirst().orElse(null);
+    }
+
+    public <T> T getNearestChunkByType(Class<T> clazz, Location loc) {
+        return getNearestChunkByType(clazz, loc, chunkMap.keySet());
+    }
+
+    public <T> T getNearestChunkByType(Class<T> clazz, Location loc, Set<IChunk> chunkSet) {
+        final List<IChunk> chunks = chunkSet.parallelStream().filter(it -> it.getClass() == clazz)
+                .collect(Collectors.toCollection(ArrayList::new));
+        if (chunks.isEmpty())
+            return null;
+        /** Return this value later, in the mean time keep it as null */
+        IChunk chunk = null;
+        /** Obtain the current x and z. Mathematically you would use x and y. */
+        final int x1 = loc.getChunk().getX();
+        final int z1 = loc.getChunk().getZ();
+        /*
+         * Set the shortest distance to the longest possible distance to allow
+         * everyhting in the loop to work
+         */
+        double shortest_distance = Double.MAX_VALUE;
+        /**
+         * Obtain the iterator to use a while loop. For loops work just fine but I
+         * prefer while
+         */
+        final Iterator<IChunk> iter = chunks.iterator();
+        /** Check if the iterator has next on each iteration */
+        while (iter.hasNext()) {
+            /** Obtain the next object */
+            final IChunk c = iter.next();
+            /** Obtain your x2 and z2 */
+            final int x2 = c.chunkX;
+            final int z2 = c.chunkZ;
+            /** Clasical squared distance */
+            final double distance = Math.abs(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(z2 - z1, 2)));
+
+            /**
+             * Check if the current shortest distance is greater than the calculated
+             * distance and set it as the new shortest if needed
+             */
+            if (shortest_distance >= distance) {
+                shortest_distance = distance;
+                chunk = c;
+            }
+        }
+
+        return clazz.cast(chunk);
+    }
+
     public PlayerChunk getNearestPlayerChunk(Location loc, Player su) {
-        /**Obtain a list of the player's chunks */
-        final List<IChunk> player_Chunks = ownedChunksMap.keySet().parallelStream().filter(it -> it instanceof PlayerChunk).filter(
-                it -> ((PlayerChunk) it).owner.getMostSignificantBits() == su.getUniqueId().getMostSignificantBits())
+        /** Obtain a list of the player's chunks */
+        final List<IChunk> player_Chunks = ownedChunksMap.keySet().parallelStream()
+                .filter(it -> it instanceof PlayerChunk).filter(it -> ((PlayerChunk) it).owner
+                        .getMostSignificantBits() == su.getUniqueId().getMostSignificantBits())
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        if(player_Chunks.isEmpty())return null;
+        if (player_Chunks.isEmpty())
+            return null;
         /** Return this value later, in the mean time keep it as null */
         IChunk chunk = null;
         /** Obtain the current x and z. Mathematically you would use x and y. */
@@ -149,7 +221,7 @@ public class ChunkManager {
             }
         }
 
-        return (PlayerChunk)chunk;
+        return (PlayerChunk) chunk;
     }
 
     public boolean removeClaimableChunk(ClaimableChunk cu, boolean addToFile) {
@@ -158,6 +230,8 @@ public class ChunkManager {
         instance.claimableChunkFile.set("claimable-chunk-list", st);
         instance.claimableChunkFile.save();
         instance.claimableChunkFile.reload();
+
+        chunkMap.remove(cu, 0);
         return claimableChunks.remove(cu, 0);
     }
 
@@ -168,7 +242,8 @@ public class ChunkManager {
     }
 
     public Location getCenterLocationChunk(IChunk c) {
-        return c != null && c.chunkWorld != null ? getCenterLocationChunk(c.chunkWorld.getChunkAt(c.chunkX, c.chunkZ)) : null;
+        return c != null && c.chunkWorld != null ? getCenterLocationChunk(c.chunkWorld.getChunkAt(c.chunkX, c.chunkZ))
+                : null;
     }
 
     public PlayerChunk claimChunk(SurvivalPlayer su, ClaimableChunk cu) {
@@ -176,7 +251,10 @@ public class ChunkManager {
             final PlayerChunk newIChunk = new PlayerChunk(su.playerUUID, cu.chunkWorld.getName(), cu.chunkX, cu.chunkZ);
             if (!verifyDups(newIChunk)) {
                 if (claimableChunks.remove(cu) != null) {
+
+                    chunkMap.remove(cu, 0);
                     ownedChunksMap.put(newIChunk, su.playerUUID);
+                    chunkMap.put(newIChunk, 1);
                     final String keyString = "chunks." + su.playerUUID + "." + newIChunk.toString();
                     instance.chunksFile.set(keyString + ".world", newIChunk.chunkWorld.getName());
                     instance.chunksFile.set(keyString + ".x-coordinate", newIChunk.chunkX);
@@ -198,6 +276,7 @@ public class ChunkManager {
                 instance.claimableChunkFile.save();
                 instance.claimableChunkFile.reload();
                 claimableChunks.remove(cu);
+                chunkMap.remove(cu, 0);
                 Bukkit.broadcastMessage("No can't do.");
             }
 
@@ -210,8 +289,12 @@ public class ChunkManager {
                 : findIChunkfromChunk(chunk);
     }
 
-    public boolean verifyDups(IChunk ichunk) {
+    public boolean verifyDups(IChunk ichunk, boolean legacy) {
         return ownedChunksMap.keySet().stream().filter(it -> compareIChunkIChunk(ichunk, it)).findFirst().isPresent();
+    }
+
+    public boolean verifyDups(IChunk ichunk) {
+        return chunkMap.keySet().stream().filter(it -> compareIChunkIChunk(ichunk, it)).findFirst().isPresent();
     }
 
     boolean compareIChunkIChunk(IChunk c1, IChunk c2) {

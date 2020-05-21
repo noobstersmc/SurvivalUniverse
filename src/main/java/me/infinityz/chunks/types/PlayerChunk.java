@@ -25,7 +25,7 @@ public class PlayerChunk extends IChunk {
      */
 
     public PlayerChunk(UUID owner, String world, int x, int z) {
-        super(x, z, Bukkit.getWorld(world));
+        this(owner, Bukkit.getWorld(world), x, z);
     }
 
     public PlayerChunk(UUID owner, World world, int x, int z) {

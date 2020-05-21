@@ -9,6 +9,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -17,6 +18,10 @@ import me.infinityz.chunks.ChunkManager;
 import me.infinityz.chunks.Tristate;
 import me.infinityz.chunks.types.ClaimableChunk;
 import me.infinityz.chunks.types.PlayerChunk;
+import me.infinityz.chunks.types.PublicChunk;
+import me.infinityz.chunks.types.PvPChunk;
+import me.infinityz.chunks.types.SafeChunk;
+import me.infinityz.chunks.types.VipChunk;
 import me.infinityz.cities.City;
 import me.infinityz.cities.CityManager;
 import me.infinityz.commands.ChunkCommands;
@@ -45,6 +50,7 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
     public FileConfig chunksFile, claimableChunkFile, cityFile, config;
     public DatabaseManager databaseManager;
     public Tristate globalPvp;
+    public Boolean pvp_drops = false;
     int bungee_players = 0;
 
     @Override
@@ -58,7 +64,11 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
         this.chunksFile = new FileConfig(this, "chunks.yml", "chunks.yml");
         this.cityFile = new FileConfig(this, "city.yml", "city.yml");
         this.config = new FileConfig(this, "config.yml", "config.yml");
-        getCommand("pvp").setExecutor(new PvPCommand(this));
+        PvPCommand pvpcmd = new PvPCommand(this);
+        getCommand("pvp").setExecutor(pvpcmd);
+        Bukkit.getPluginManager().registerEvents(pvpcmd, this);
+        getCommand("globalpvp").setExecutor(pvpcmd);
+        getCommand("pvpdrops").setExecutor(pvpcmd);
         final ChunkCommands ch = new ChunkCommands(this);
         getCommand("chunk").setExecutor(ch);
         getCommand("claim").setExecutor(ch);
@@ -116,16 +126,72 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
     }
 
     void loadChunks() {
-        chunksFile.getConfigurationSection("chunks").getKeys(false).forEach(it -> {
-            chunksFile.getConfigurationSection("chunks." + it).getKeys(false).forEach(cks -> {
-                String keypath = "chunks." + it + "." + cks;
+        chunksFile.getConfigurationSection("chunks.player-chunks").getKeys(false).forEach(it -> {
+            chunksFile.getConfigurationSection("chunks.player-chunks." + it).getKeys(false).forEach(cks -> {
+                String keypath = "chunks.player-chunks." + it + "." + cks;
                 UUID uuid = UUID.fromString(it);
                 int x = chunksFile.getInt(keypath + ".x-coordinate");
                 int z = chunksFile.getInt(keypath + ".z-coordinate");
                 String world = chunksFile.getString(keypath + ".world");
                 PlayerChunk chunk = new PlayerChunk(uuid, world, x, z);
-                chunkManager.ownedChunksMap.put(chunk, uuid);
+                if (!chunkManager.verifyDups(chunk)) {
+                    chunkManager.ownedChunksMap.put(chunk, uuid);
+                    System.out.println("Loaded: Owned " + x + ", " + z);
+                    chunkManager.chunkMap.put(chunk, 1);
+                }
             });
+        });
+        chunksFile.getConfigurationSection("chunks.pvp-chunks").getKeys(false).forEach(it -> {
+            final String keypath = "chunks.pvp-chunks." + it + ".";
+            final int x = chunksFile.getInt(keypath + "x-coordinate");
+            final int z = chunksFile.getInt(keypath + "z-coordinate");
+            final World w = Bukkit.getWorld(chunksFile.getString(keypath + "world"));
+            if (w == null)
+                return;
+            final PvPChunk chunk = new PvPChunk(x, z, w);
+            if (!chunkManager.verifyDups(chunk)) {
+                chunkManager.chunkMap.put(chunk, 1);
+                System.out.println("Loaded: PVP " + x + ", " + z);
+            }
+        });
+        chunksFile.getConfigurationSection("chunks.safe-chunks").getKeys(false).forEach(it -> {
+            final String keypath = "chunks.safe-chunks." + it + ".";
+            final int x = chunksFile.getInt(keypath + "x-coordinate");
+            final int z = chunksFile.getInt(keypath + "z-coordinate");
+            final World w = Bukkit.getWorld(chunksFile.getString(keypath + "world"));
+            if (w == null)
+                return;
+            final SafeChunk chunk = new SafeChunk(x, z, w);
+            if (!chunkManager.verifyDups(chunk)) {
+                chunkManager.chunkMap.put(chunk, 1);
+                System.out.println("Loaded: SafeChunk " + x + ", " + z);
+            }
+        });
+        chunksFile.getConfigurationSection("chunks.vip-chunks").getKeys(false).forEach(it -> {
+            final String keypath = "chunks.vip-chunks." + it + ".";
+            final int x = chunksFile.getInt(keypath + "x-coordinate");
+            final int z = chunksFile.getInt(keypath + "z-coordinate");
+            final World w = Bukkit.getWorld(chunksFile.getString(keypath + "world"));
+            if (w == null)
+                return;
+            final VipChunk chunk = new VipChunk(x, z, w);
+            if (!chunkManager.verifyDups(chunk)) {
+                chunkManager.chunkMap.put(chunk, 1);
+                System.out.println("Loaded: VipChunk " + x + ", " + z);
+            }
+        });
+        chunksFile.getConfigurationSection("chunks.public-chunks").getKeys(false).forEach(it -> {
+            final String keypath = "chunks.public-chunks." + it + ".";
+            final int x = chunksFile.getInt(keypath + "x-coordinate");
+            final int z = chunksFile.getInt(keypath + "z-coordinate");
+            final World w = Bukkit.getWorld(chunksFile.getString(keypath + "world"));
+            if (w == null)
+                return;
+            final PublicChunk chunk = new PublicChunk(x, z, w);
+            if (!chunkManager.verifyDups(chunk)) {
+                chunkManager.chunkMap.put(chunk, 1);
+                System.out.println("Loaded: PublicChunk " + x + ", " + z);
+            }
         });
     }
 
@@ -179,7 +245,10 @@ public class SurvivalUniverse extends JavaPlugin implements PluginMessageListene
             final int x = Integer.parseInt(str[0]);
             final int z = Integer.parseInt(str[1]);
             final String world = str[2];
-            instance.chunkManager.addClaimableChunk(new ClaimableChunk(x, z, world));
+            ClaimableChunk c = new ClaimableChunk(x, z, world);
+            if (instance.chunkManager.addClaimableChunk(c)) {
+                chunkManager.chunkMap.put(c, 1);
+            }
         });
     }
 

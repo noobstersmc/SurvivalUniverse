@@ -2,6 +2,7 @@ package me.infinityz.chunks.types;
 
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -14,6 +15,10 @@ public class VipChunk extends IChunk {
         super(x, z, world);
         this.canInteract = new HirarchyAllowance[] { HirarchyAllowance.ADMIN, HirarchyAllowance.HELPER,
                 HirarchyAllowance.DONOR };
+    }
+
+    public VipChunk(int x, int z, String world) {
+        this(x, z, Bukkit.getWorld(world));
     }
 
     @Override

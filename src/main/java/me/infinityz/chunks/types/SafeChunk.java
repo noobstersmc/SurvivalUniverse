@@ -1,5 +1,6 @@
 package me.infinityz.chunks.types;
 
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import me.infinityz.chunks.IChunk;
@@ -12,4 +13,7 @@ public class SafeChunk extends IChunk {
         this.pvpMode = Tristate.FALSE;
     }
 
+    public SafeChunk(int x, int z, String world) {
+        this(x, z, Bukkit.getWorld(world));
+    }
 }

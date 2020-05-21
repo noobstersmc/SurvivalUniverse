@@ -55,28 +55,30 @@ public class CityListener implements Listener {
         if (e.getPlayer() == null)
             return;
         final Player player = e.getPlayer();
-        final IChunk ch = instance.chunkManager.findIChunkfromChunk(player.getChunk());
+        final IChunk ch = instance.chunkManager.getChunkFromLoc(player.getLocation());
         if (ch != null) {
             e.setCancelled(!ch.shouldBuild(player.getUniqueId(), e.getBlock().getLocation()));
         } else {
             final City city = instance.cityManager.isInCity(e.getBlock().getLocation());
-            if (city != null)
+            if (city != null) {
                 e.setCancelled(!(city.isHelper(player) || city.isOwner(player)));
+            }
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlace(BlockPlaceEvent e) {
         if (e.getPlayer() == null)
             return;
         final Player player = e.getPlayer();
-        final IChunk ch = instance.chunkManager.findIChunkfromChunk(player.getChunk());
+        final IChunk ch = instance.chunkManager.getChunkFromLoc(player.getLocation());
         if (ch != null) {
             e.setCancelled(!ch.shouldBuild(player.getUniqueId(), e.getBlock().getLocation()));
         } else {
             final City city = instance.cityManager.isInCity(e.getBlock().getLocation());
-            if (city != null)
+            if (city != null) {
                 e.setCancelled(!(city.isHelper(player) || city.isOwner(player)));
+            }
         }
     }
 

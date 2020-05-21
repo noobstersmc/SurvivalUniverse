@@ -1,3 +1,4 @@
+me\infinityz\chunks\types\SafeChunk.class
 me\infinityz\cities\CityChangeEvent.class
 me\infinityz\cities\CityManager.class
 me\infinityz\listeners\ChunkListener.class
@@ -9,10 +10,12 @@ me\infinityz\listeners\GlobalListeners.class
 me\infinityz\players\PlayerManager.class
 me\infinityz\stats\DatabaseManager.class
 me\infinityz\utils\FileConfig.class
+me\infinityz\chunks\types\PvPChunk.class
 me\infinityz\scoreboard\FastBoard.class
 me\infinityz\commands\PvPCommand.class
 me\infinityz\SurvivalUniverse.class
 me\infinityz\cities\ZoneVector.class
+me\infinityz\chunks\Tristate.class
 me\infinityz\chunks\types\PlayerChunk.class
 me\infinityz\chunks\types\ClaimableChunk.class
 me\infinityz\cities\City.class
@@ -21,11 +24,13 @@ me\infinityz\listeners\DatabaseLoggerListener.class
 me\infinityz\commands\ChunkCommands.class
 me\infinityz\chunks\ChunkManager.class
 me\infinityz\scoreboard\ScoreboardManager.class
+me\infinityz\chunks\types\VipChunk.class
 me\infinityz\chunks\IChunk.class
 me\infinityz\stats\types\vMySQL.class
 me\infinityz\listeners\PlayerChangeChunkEvent.class
 me\infinityz\commands\TeleportCommands$1.class
 me\infinityz\scoreboard\FastBoard$TeamMode.class
+me\infinityz\chunks\types\PublicChunk.class
 me\infinityz\stats\core\MySQL.class
 me\infinityz\players\SurvivalPlayer.class
 me\infinityz\commands\TeleportCommands.class
@@ -33,3 +38,4 @@ me\infinityz\scoreboard\FastBoard$VersionType.class
 me\infinityz\listeners\GlobalListeners$1.class
 me\infinityz\scoreboard\FastBoard$ScoreboardAction.class
 me\infinityz\players\ConnectionExample.class
+me\infinityz\chunks\HirarchyAllowance.class

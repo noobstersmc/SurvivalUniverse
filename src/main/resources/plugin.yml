@@ -5,6 +5,8 @@ api-version: 1.13
 author: InfinityZ25
 commands:
   pvp:
+  pvpdrops:
+  globalpvp:
   chunk:
   claim:
   city:

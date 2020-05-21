@@ -1,7 +1,27 @@
 chunks:
-  5de6e184-af8d-498a-bbde-055e50653316:
-    1:
+  player-chunks:
+    5de6e184-af8d-498a-bbde-055e50653316:
+      1:
+        world: world
+        x-coordinate: 0
+        z-coordinate: 0
+  pvp-chunks:
+    test-0-0:
       world: world
-      x-coordinate: 0
-      z-coordinate: 0
-      
+      x-coordinate: 100
+      z-coordinate: 100
+  safe-chunks:
+    test-0-0:
+      world: world
+      x-coordinate: 100
+      z-coordinate: 101
+  vip-chunks:
+    test-0-0:
+      world: world
+      x-coordinate: 101
+      z-coordinate: 100
+  public-chunks:
+    test-0-0:
+      world: world
+      x-coordinate: 100
+      z-coordinate: 102

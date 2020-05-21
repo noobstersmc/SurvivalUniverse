@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -23,6 +24,10 @@ import me.infinityz.SurvivalUniverse;
 import me.infinityz.chunks.IChunk;
 import me.infinityz.chunks.types.ClaimableChunk;
 import me.infinityz.chunks.types.PlayerChunk;
+import me.infinityz.chunks.types.PublicChunk;
+import me.infinityz.chunks.types.PvPChunk;
+import me.infinityz.chunks.types.SafeChunk;
+import me.infinityz.chunks.types.VipChunk;
 import me.infinityz.cities.City;
 import me.infinityz.players.SurvivalPlayer;
 import net.md_5.bungee.api.ChatColor;
@@ -35,7 +40,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
     SurvivalUniverse instance;
     String[] helpArray = { "check", "delete", "own", "list", "claimlist", "claimadd", "claimremove" };
     String[] helperHelpArray = { "add", "remove" };
-    String[] allyHelpArray = { "add", "remove", "list", "test"};
+    String[] allyHelpArray = { "add", "remove", "list", "test" };
 
     public ChunkCommands(SurvivalUniverse instance) {
         this.instance = instance;
@@ -69,7 +74,9 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                             PlayerChunk newIChunk = new PlayerChunk(target.getUniqueId(), c.getWorld().getName(),
                                     c.getX(), c.getZ());
                             instance.chunkManager.ownedChunksMap.put(newIChunk, target.getUniqueId());
-                            String keyString = "chunks." + target.getUniqueId() + "." + newIChunk.toString();
+                            instance.chunkManager.chunkMap.put(newIChunk, 1);
+                            String keyString = "chunks.player-chunks." + target.getUniqueId() + "."
+                                    + newIChunk.toString();
                             instance.chunksFile.set(keyString + ".world", newIChunk.chunkWorld.getName());
                             instance.chunksFile.set(keyString + ".x-coordinate", newIChunk.chunkX);
                             instance.chunksFile.set(keyString + ".z-coordinate", newIChunk.chunkZ);
@@ -94,16 +101,17 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                         sender.sendMessage(ChatColor.RED + "No permissions");
                         return true;
                     }
-                    final Chunk c = player.getLocation().getChunk();
-                    final PlayerChunk playerChunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(c);
+                    final PlayerChunk playerChunk = instance.chunkManager.getChunkFromLocationByType(PlayerChunk.class,
+                            player.getLocation());
                     if (playerChunk == null) {
                         // Chunk null, send message if needed
                         return true;
                     }
                     if (instance.chunkManager.ownedChunksMap.remove(playerChunk) != null) {
-                        for (String str : instance.chunksFile.getConfigurationSection("chunks." + playerChunk.owner)
-                                .getKeys(false)) {
-                            final String path = "chunks." + playerChunk.owner + "." + str;
+                        instance.chunkManager.chunkMap.remove(playerChunk);
+                        for (String str : instance.chunksFile
+                                .getConfigurationSection("chunks.player-chunks." + playerChunk.owner).getKeys(false)) {
+                            final String path = "chunks.player-chunks." + playerChunk.owner + "." + str;
                             final int x = instance.chunksFile.getInt(path + ".x-coordinate");
                             final int z = instance.chunksFile.getInt(path + ".z-coordinate");
                             final String world = instance.chunksFile.getString(path + ".world");
@@ -124,8 +132,7 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     break;
                 }
                 case "check": {
-                    final Chunk c = player.getLocation().getChunk();
-                    IChunk iChunk = instance.chunkManager.findIChunkfromChunk(c);
+                    IChunk iChunk = instance.chunkManager.getChunkFromLoc(player.getLocation());
                     if (iChunk == null) {
                         sender.sendMessage(ChatColor.RED + "This chunk is not owned!");
                         return true;
@@ -178,9 +185,9 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                     /* Only allow claim if has played 1h+ */
                     final int played_time_seconds = (player.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20);
                     if ((played_time_seconds / 600) < 1) {
-                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                String.format("&cYou haven't played at least 10 minutes in this world to claim a chunk! (%.2f)",
-                                        played_time_seconds / 3600.00D)));
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format(
+                                "&cYou haven't played at least 10 minutes in this world to claim a chunk! (%.2f)",
+                                played_time_seconds / 3600.00D)));
                         return true;
                     }
                     /* Ensure player isn't null */
@@ -302,6 +309,19 @@ public class ChunkCommands implements CommandExecutor, TabCompleter {
                 }
                 default: {
                     sender.sendMessage("Command usage: /chunk <check:delete:own> [Player]");
+                    break;
+                }
+                case "ls": {
+                    Set<IChunk> ch = instance.chunkManager.chunkMap.keySet();
+                    long a = ch.stream().filter(it -> it.getClass() == ClaimableChunk.class).count();
+                    long b = ch.stream().filter(it -> it.getClass() == PlayerChunk.class).count();
+                    long c = ch.stream().filter(it -> it.getClass() == PublicChunk.class).count();
+                    long d = ch.stream().filter(it -> it.getClass() == SafeChunk.class).count();
+                    long e = ch.stream().filter(it -> it.getClass() == VipChunk.class).count();
+                    long F = ch.stream().filter(it -> it.getClass() == PvPChunk.class).count();
+                    Bukkit.broadcastMessage(
+                            String.format("Owned: %d\nClaimable: %d\nPublic: %d\nSafe: %d\nVip:%d\nPvP: %d", (int) b,
+                                    (int) a, (int) c, (int) d, (int) e, (int) F));
                     break;
                 }
             }

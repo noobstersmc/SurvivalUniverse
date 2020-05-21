@@ -3,6 +3,7 @@ package me.infinityz.chunks;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -85,5 +86,9 @@ public class IChunk {
     public boolean isVIP(UUID player) {
         final Player p = Bukkit.getPlayer(player);
         return p != null && p.hasPermission("vip.chunk");
+    }
+
+    public boolean equals(Chunk obj) {
+        return obj.getX() == this.chunkX && obj.getZ() == this.chunkZ && obj.getWorld() == this.chunkWorld;
     }
 }

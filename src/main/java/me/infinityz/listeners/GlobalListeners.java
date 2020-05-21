@@ -16,15 +16,15 @@ import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
@@ -49,6 +49,8 @@ import me.infinityz.SurvivalUniverse;
 import me.infinityz.chunks.IChunk;
 import me.infinityz.chunks.Tristate;
 import me.infinityz.chunks.types.PlayerChunk;
+import me.infinityz.chunks.types.PvPChunk;
+import me.infinityz.chunks.types.SafeChunk;
 import me.infinityz.cities.City;
 import me.infinityz.cities.CityChangeEvent;
 import me.infinityz.players.SurvivalPlayer;
@@ -75,6 +77,40 @@ public class GlobalListeners implements Listener {
                 : (e.getDamager() instanceof Projectile ? (((Projectile) e.getDamager()).getShooter() instanceof Player
                         ? (Player) ((Projectile) e.getDamager()).getShooter()
                         : null) : null);
+    }
+
+    @SuppressWarnings("all")
+    @EventHandler
+    public void onDeath(PlayerDeathEvent e) {
+        final Player p = e.getEntity();
+        final PvPChunk c = instance.chunkManager.getChunkFromLocationByType(PvPChunk.class, p.getLocation());
+        if (c != null) {
+            if (!instance.pvp_drops) {
+                e.setDeathMessage("");
+                e.setKeepInventory(true);
+                e.getDrops().clear();
+            } else {
+                final ItemStack stack = new ItemStack(Material.PLAYER_HEAD, 1);
+                final SkullMeta meta = (SkullMeta) stack.getItemMeta();
+                meta.setOwner(p.getName());
+                stack.setItemMeta(meta);
+                p.getWorld().dropItemNaturally(p.getLocation(), stack);
+            }
+            final SafeChunk nearest = instance.chunkManager.getNearestChunkByType(SafeChunk.class, p.getLocation());
+            if (nearest != null) {
+                Bukkit.getScheduler().runTaskLater(instance, () -> {
+                    p.spigot().respawn();
+                    Bukkit.getScheduler().runTaskLater(instance, () -> {
+                        Location loc = instance.chunkManager.getCenterLocationChunk(nearest);
+                        p.teleport(loc.getWorld().getHighestBlockAt(loc).getLocation().add(0.0, 1.5, 0.0));
+                    }, 5);
+                }, 15);
+            }
+
+        } else {
+
+        }
+
     }
 
     @EventHandler
@@ -178,7 +214,7 @@ public class GlobalListeners implements Listener {
         if (e.getCause() == RemoveCause.PHYSICS || e.getCause() == RemoveCause.ENTITY)
             return;
 
-        if (instance.chunkManager.findIChunkfromChunk(e.getEntity().getLocation().getChunk()) != null
+        if (instance.chunkManager.getChunkFromLoc(e.getEntity().getLocation()) != null
                 || instance.cityManager.isInCity(e.getEntity().getLocation()) != null) {
             e.setCancelled(true);
         }
@@ -196,19 +232,20 @@ public class GlobalListeners implements Listener {
 
     }
 
-    @EventHandler(priority = EventPriority.LOW)
-    public void onBreakCity(BlockBreakEvent e) {
-        e.setCancelled(e.getPlayer() != null ? maybeInCityOrChunk(e.getBlock().getLocation(), e.getPlayer())
-                : maybeInCityOrChunk(e.getBlock().getLocation()));
-    }
+    /*
+     * @EventHandler(priority = EventPriority.LOW) public void
+     * onBreakCity(BlockBreakEvent e) { e.setCancelled(e.getPlayer() != null ?
+     * maybeInCityOrChunk(e.getBlock().getLocation(), e.getPlayer()) :
+     * maybeInCityOrChunk(e.getBlock().getLocation())); }
+     */
 
-    @EventHandler(priority = EventPriority.LOW)
-    public void onPlaceCity(BlockPlaceEvent e) {
-        if (e.getBlock().getType() == Material.LECTERN)
-            return;
-        e.setCancelled(e.getPlayer() != null ? maybeInCityOrChunk(e.getBlock().getLocation(), e.getPlayer())
-                : maybeInCityOrChunk(e.getBlock().getLocation()));
-    }
+    /*
+     * @EventHandler(priority = EventPriority.LOW) public void
+     * onPlaceCity(BlockPlaceEvent e) { if (e.getBlock().getType() ==
+     * Material.LECTERN) return; e.setCancelled(e.getPlayer() != null ?
+     * maybeInCityOrChunk(e.getBlock().getLocation(), e.getPlayer()) :
+     * maybeInCityOrChunk(e.getBlock().getLocation())); }
+     */
 
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
@@ -229,6 +266,8 @@ public class GlobalListeners implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void interactEvent(PlayerInteractEvent e) {
+        if (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK)
+            return;
         if (e.getClickedBlock() == null || e.getClickedBlock().getType() == Material.AIR)
             return;
         switch (e.getClickedBlock().getType()) {
@@ -257,16 +296,17 @@ public class GlobalListeners implements Listener {
                     return;
                 } // Maybe delete this?
                 e.setUseItemInHand(Result.DEFAULT);
-                final IChunk chunk = instance.chunkManager.findIChunkfromChunk(e.getClickedBlock().getChunk());
+                final IChunk chunk = instance.chunkManager.getChunkFromLoc(e.getClickedBlock().getLocation());
                 if (chunk != null) {
-                    e.setUseInteractedBlock(
-                            chunk.shouldInteract(e.getPlayer().getUniqueId(), e.getClickedBlock().getLocation())
-                                    ? Result.ALLOW
-                                    : Result.DENY);
+                    if (!chunk.shouldInteract(e.getPlayer().getUniqueId(), e.getClickedBlock().getLocation())) {
+                        e.setUseInteractedBlock(Result.DENY);
+                    }
                 } else {
                     final City city = instance.cityManager.isInCity(e.getClickedBlock().getLocation());
-                    e.setUseInteractedBlock(
-                            city.isHelper(e.getPlayer()) || city.isOwner(e.getPlayer()) ? Result.ALLOW : Result.DENY);
+                    if (city != null)
+                        e.setUseInteractedBlock(
+                                city.isHelper(e.getPlayer()) || city.isOwner(e.getPlayer()) ? Result.ALLOW
+                                        : Result.DENY);
                 }
                 // TODO: Write a method to allow placing against block that's not yours.
                 // if(e.getAction() == Action.RIGHT_CLICK_BLOCK);
@@ -325,7 +365,7 @@ public class GlobalListeners implements Listener {
     }
 
     String getZone(Location loc) {
-        final IChunk chunk = instance.chunkManager.getChunkNoType(loc.getChunk());
+        final IChunk chunk = instance.chunkManager.getChunkFromLoc(loc);
         if (chunk != null) {
             switch (chunk.getClass().getSimpleName().toLowerCase()) {
                 case "playerchunk":
@@ -335,7 +375,7 @@ public class GlobalListeners implements Listener {
                 default:
                     break;
             }
-            return capitalizeFirst(getClass().getSimpleName().replace("Chunk", ""));
+            return capitalizeFirst(chunk.getClass().getSimpleName().replace("Chunk", ""));
         }
         final City ci = instance.cityManager.isInCity(loc);
         if (ci != null)
@@ -453,19 +493,26 @@ public class GlobalListeners implements Listener {
                             survivalPlayer = instance.playerManager.survivalPlayerMap.get(e.getEntity().getUniqueId());
                     /* Check if they are in pvp or safe chunks */
                     if (dmgr.getChunk() == e.getEntity().getChunk()) {
-                        final IChunk c = instance.chunkManager.findIChunkfromChunk(dmgr.getChunk());
-                        if (c.pvpMode == Tristate.TRUE) {
-                            // Pvp chunk implied
-                            e.setCancelled(false);
-                            return;
-                        } else if (c.pvpMode == Tristate.FALSE) {
-                            // Safe chunk implied
-                            e.setCancelled(true);
-                            return;
+                        final IChunk c = instance.chunkManager.getChunkFromLoc(dmgr.getLocation());
+                        if (c != null) {
+                            if (c.pvpMode == Tristate.TRUE) {
+                                // Pvp chunk implied
+                                e.setCancelled(false);
+                                return;
+                            } else if (c.pvpMode == Tristate.FALSE) {
+                                // Safe chunk implied
+                                e.setCancelled(true);
+                                return;
+                            }
+                        } else {
+                            if (!survivalPlayer.pvp || !survivalDamagerPlayer.pvp) {
+                                e.setCancelled(true);
+                                return;
+                            }
                         }
                     } else {
-                        final IChunk damagerChunk = instance.chunkManager.findIChunkfromChunk(dmgr.getChunk()),
-                                entityChunk = instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+                        final IChunk damagerChunk = instance.chunkManager.getChunkFromLoc(dmgr.getLocation()),
+                                entityChunk = instance.chunkManager.getChunkFromLoc(e.getEntity().getLocation());
                         if (damagerChunk != null) {
                             if (entityChunk != null) {
                                 if (damagerChunk.pvpMode == Tristate.FALSE || entityChunk.pvpMode == Tristate.FALSE) {
@@ -507,13 +554,23 @@ public class GlobalListeners implements Listener {
     /* Issue #3 - Water and Lava buckets - Start */
     @EventHandler
     public void onBucketEmpty(PlayerBucketEmptyEvent e) {
-        e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer(), true));
+        PvPChunk pvp = instance.chunkManager.getChunkFromLocationByType(PvPChunk.class,
+                e.getBlockClicked().getLocation());
+        if (pvp == null) {
+            e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer(), true));
+            return;
+        }
 
     }
 
     @EventHandler
     public void onBucketFill(PlayerBucketFillEvent e) {
-        e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer(), true));
+        PvPChunk pvp = instance.chunkManager.getChunkFromLocationByType(PvPChunk.class,
+                e.getBlockClicked().getLocation());
+        if (pvp == null) {
+            e.setCancelled(maybeInCityOrChunk(e.getBlockClicked().getLocation(), e.getPlayer(), true));
+            return;
+        }
     }
     /* Issue #3 - Water and Lava buckets - End here */
 
@@ -525,7 +582,8 @@ public class GlobalListeners implements Listener {
                 bol = true;
             }
         }
-        final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(location.getChunk());
+        final PlayerChunk chunk = instance.chunkManager.getChunkFromLocationByType(PlayerChunk.class, location);
+
         if (chunk != null) {
             if (chunk.owner.getMostSignificantBits() == player.getUniqueId().getMostSignificantBits()) {
                 bol = false;
@@ -553,7 +611,7 @@ public class GlobalListeners implements Listener {
                 bol = true;
             }
         }
-        final PlayerChunk chunk = (PlayerChunk) instance.chunkManager.findIChunkfromChunk(location.getChunk());
+        final PlayerChunk chunk = instance.chunkManager.getChunkFromLocationByType(PlayerChunk.class, location);
         if (chunk != null) {
             if (helper)
                 bol = true;
@@ -574,7 +632,7 @@ public class GlobalListeners implements Listener {
     }
 
     boolean maybeInCityOrChunk(Location location) {
-        return instance.chunkManager.findIChunkfromChunk(location.getChunk()) != null
+        return instance.chunkManager.getChunkFromLoc(location) != null
                 || instance.cityManager.isInCity(location) != null;
     }
 

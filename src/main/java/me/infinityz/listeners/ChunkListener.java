@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.event.world.PortalCreateEvent;
+import org.spigotmc.event.entity.EntityMountEvent;
 
 import me.infinityz.SurvivalUniverse;
 import me.infinityz.chunks.IChunk;
@@ -32,8 +33,8 @@ public class ChunkListener implements Listener {
 
     @EventHandler
     public void onShears(PlayerShearEntityEvent e) {
-        e.setCancelled(instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk())
-                .shouldInteract(e.getPlayer().getUniqueId()));
+        final IChunk c = instance.chunkManager.getChunkFromLoc(e.getEntity().getLocation());
+        e.setCancelled(c != null ? c.shouldInteract(e.getPlayer().getUniqueId()) : false);
     }
 
     @EventHandler
@@ -44,7 +45,7 @@ public class ChunkListener implements Listener {
             return;
         if (e.getEntity() instanceof Monster || e.getEntity() instanceof Player) /* Issue #3 - Player Damage */
             return;
-        final IChunk chunk = instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+        final IChunk chunk = instance.chunkManager.getChunkFromLoc(e.getEntity().getLocation());
         if (chunk != null) {
             final Player p = GlobalListeners.getPlayerDamagerEntityEvent(e);
             if (p != null) {
@@ -54,20 +55,33 @@ public class ChunkListener implements Listener {
     }
 
     @EventHandler
+    public void mount(EntityMountEvent e) {
+        if (e.getEntity() instanceof Player) {
+            Player p = (Player) e.getEntity();
+            PlayerChunk pc = instance.chunkManager.getChunkFromLocationByType(PlayerChunk.class,
+                    e.getMount().getLocation());
+            if (pc != null) {
+                e.setCancelled(!pc.shouldBuild(p.getUniqueId(), e.getMount().getLocation()));
+            }
+
+        }
+    }
+
+    @EventHandler
     public void onPortal(PortalCreateEvent e) {
-        final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getBlocks().get(0).getChunk());
+        final IChunk c = instance.chunkManager.getChunkFromLoc(e.getBlocks().get(0).getLocation());
         e.setCancelled(c != null && c.getClass().isAssignableFrom(PlayerChunk.class));
     }
 
     @EventHandler
     public void onPlaceTNT(BlockPlaceEvent e) {
-        final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getBlockPlaced().getChunk());
+        final IChunk c = instance.chunkManager.getChunkFromLoc(e.getBlockPlaced().getLocation());
         e.setCancelled(c != null && (c.getClass().isAssignableFrom(PlayerChunk.class)));
     }
 
     @EventHandler
     public void onExplode(BlockExplodeEvent e) {
-        final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getBlock().getChunk());
+        final IChunk c = instance.chunkManager.getChunkFromLoc(e.getBlock().getLocation());
         e.setCancelled(c != null && (c.getClass().isAssignableFrom(PlayerChunk.class)
                 || c.getClass().isAssignableFrom(SafeChunk.class)));
     }
@@ -76,13 +90,13 @@ public class ChunkListener implements Listener {
     public void onExplode(EntityExplodeEvent e) {
         if (e.getEntity().getType() != EntityType.PRIMED_TNT)
             return;
-        e.blockList().removeIf(block -> instance.chunkManager.findIChunkfromChunk(block.getChunk()) != null);
+        e.blockList().removeIf(block -> instance.chunkManager.getChunkFromLoc(block.getLocation()) != null);
     }/* Issue #3 - TNT In city fixed */
 
     @EventHandler
     public void onWither(CreatureSpawnEvent e) {
         if (e.getEntityType() == EntityType.WITHER || e.getEntityType() == EntityType.ENDER_CRYSTAL) {
-            final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+            final IChunk c = instance.chunkManager.getChunkFromLoc(e.getEntity().getLocation());
             e.setCancelled(c != null && c.getClass().isAssignableFrom(PlayerChunk.class));
         }
     }
@@ -101,7 +115,7 @@ public class ChunkListener implements Listener {
                 || e.getSpawnReason() == SpawnReason.LIGHTNING || e.getSpawnReason() == SpawnReason.BEEHIVE)
             return;
 
-        final IChunk c = instance.chunkManager.findIChunkfromChunk(e.getEntity().getChunk());
+        final IChunk c = instance.chunkManager.getChunkFromLoc(e.getEntity().getLocation());
         e.setCancelled(c != null && c.getClass().isAssignableFrom(PlayerChunk.class));
     }
 
