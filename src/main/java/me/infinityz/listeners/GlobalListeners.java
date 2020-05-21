@@ -249,7 +249,7 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onLogin(PlayerLoginEvent e) {
-        if (Bukkit.getOnlinePlayers().size() >= 50 && !e.getPlayer().hasPermission("reserved.slot"))
+        if (Bukkit.getOnlinePlayers().size() >= 40 && !e.getPlayer().hasPermission("reserved.slot"))
             /**
              * &fServer is full! \n &aGet your rank at survivalrip.buycraft.net \n &bAnd
              * don`t forget to follow us on Twitter @Survival_U
@@ -261,7 +261,7 @@ public class GlobalListeners implements Listener {
 
     @EventHandler
     public void onPing(ServerListPingEvent e) {
-        e.setMaxPlayers(30);
+        e.setMaxPlayers(40);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
